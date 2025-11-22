@@ -1,0 +1,2144 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8">
+  <title>DIGIY DRIVER — App Chauffeur</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  
+  <!-- Leaflet CSS -->
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+  
+  <style>
+    :root {
+      --bg: #0a0a0a;
+      --card: #1a1a1a;
+      --card-light: #252525;
+      --gold: #FFD700;
+      --gold-dark: #C7A008;
+      --white: #ffffff;
+      --gray: #888888;
+      --gray-light: #b0b0b0;
+      --green: #00C853;
+      --red: #FF5252;
+      --orange: #FF9800;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: 'Segoe UI', system-ui, sans-serif;
+    }
+
+    body {
+      background: var(--bg);
+      color: var(--white);
+      min-height: 100vh;
+      overflow-x: hidden;
+    }
+
+    /* ===== ANIMATIONS ===== */
+    @keyframes pulse {
+      0%, 100% { transform: scale(1); }
+      50% { transform: scale(1.05); }
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(20px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    @keyframes glow {
+      0%, 100% { box-shadow: 0 0 10px rgba(0, 200, 83, 0.5); }
+      50% { box-shadow: 0 0 25px rgba(0, 200, 83, 0.8); }
+    }
+
+    @keyframes spin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+
+    /* ===== LOADING SCREEN ===== */
+    .loading-screen {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: var(--bg);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      z-index: 9999;
+    }
+
+    .loading-screen.hidden {
+      display: none;
+    }
+
+    .loading-spinner {
+      width: 50px;
+      height: 50px;
+      border: 4px solid var(--card-light);
+      border-top-color: var(--gold);
+      border-radius: 50%;
+      animation: spin 1s linear infinite;
+      margin-bottom: 20px;
+    }
+
+    .loading-text {
+      color: var(--gray);
+      font-size: 14px;
+    }
+
+    /* ===== LOGIN SCREEN ===== */
+    .login-screen {
+      display: none;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      min-height: 100vh;
+      padding: 20px;
+    }
+
+    .login-screen.show {
+      display: flex;
+    }
+
+    .login-logo {
+      font-size: 70px;
+      margin-bottom: 15px;
+    }
+
+    .login-title {
+      font-size: 28px;
+      font-weight: 800;
+      color: var(--gold);
+      margin-bottom: 5px;
+    }
+
+    .login-subtitle {
+      color: var(--gray);
+      font-size: 14px;
+      margin-bottom: 40px;
+    }
+
+    .login-card {
+      background: var(--card);
+      border: 2px solid var(--gold);
+      border-radius: 25px;
+      padding: 35px;
+      width: 100%;
+      max-width: 380px;
+    }
+
+    .login-input {
+      width: 100%;
+      padding: 16px;
+      border: 2px solid #333;
+      border-radius: 12px;
+      background: var(--card-light);
+      color: var(--white);
+      font-size: 16px;
+      margin-bottom: 15px;
+      outline: none;
+    }
+
+    .login-input:focus {
+      border-color: var(--gold);
+    }
+
+    .login-input::placeholder {
+      color: var(--gray);
+    }
+
+    .login-btn {
+      width: 100%;
+      padding: 16px;
+      background: var(--gold);
+      color: var(--bg);
+      border: none;
+      border-radius: 12px;
+      font-size: 18px;
+      font-weight: 700;
+      cursor: pointer;
+    }
+
+    .login-btn:hover {
+      background: var(--gold-dark);
+    }
+
+    .login-btn:disabled {
+      background: var(--gray);
+      cursor: not-allowed;
+    }
+
+    .login-error {
+      color: var(--red);
+      font-size: 14px;
+      text-align: center;
+      margin-top: 15px;
+      display: none;
+    }
+
+    .login-error.show {
+      display: block;
+    }
+
+    .login-help {
+      text-align: center;
+      margin-top: 25px;
+      font-size: 13px;
+      color: var(--gray);
+    }
+
+    .login-help a {
+      color: var(--gold);
+      text-decoration: none;
+    }
+
+    /* ===== SYNC STATUS ===== */
+    .sync-status {
+      position: fixed;
+      top: 10px;
+      right: 10px;
+      background: var(--card);
+      padding: 6px 12px;
+      border-radius: 15px;
+      font-size: 11px;
+      z-index: 1000;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .sync-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: var(--gray);
+    }
+
+    .sync-dot.synced {
+      background: var(--green);
+    }
+
+    .sync-dot.syncing {
+      background: var(--orange);
+      animation: pulse 1s infinite;
+    }
+
+    .sync-dot.offline {
+      background: var(--red);
+    }
+
+    /* ===== APP CHAUFFEUR ===== */
+    .driver-app {
+      display: none;
+      min-height: 100vh;
+      flex-direction: column;
+    }
+
+    .driver-app.show {
+      display: flex;
+    }
+
+    /* ===== HEADER ===== */
+    .app-header {
+      background: linear-gradient(135deg, #1a1a1a, #252525);
+      padding: 15px 20px;
+      border-bottom: 2px solid var(--gold);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .header-left {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .header-logo {
+      font-size: 28px;
+    }
+
+    .header-text h1 {
+      font-size: 18px;
+      font-weight: 800;
+      color: var(--gold);
+    }
+
+    .header-text p {
+      font-size: 12px;
+      color: var(--gray);
+    }
+
+    .header-right {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .earnings-badge {
+      background: var(--card-light);
+      border: 1px solid var(--gold);
+      padding: 8px 15px;
+      border-radius: 20px;
+      text-align: center;
+    }
+
+    .earnings-badge .amount {
+      font-size: 16px;
+      font-weight: 800;
+      color: var(--gold);
+    }
+
+    .earnings-badge .label {
+      font-size: 10px;
+      color: var(--gray);
+    }
+
+    /* ===== STATUS TOGGLE ===== */
+    .status-section {
+      padding: 20px;
+      background: var(--card);
+      border-bottom: 1px solid #333;
+    }
+
+    .status-card {
+      background: var(--card-light);
+      border-radius: 20px;
+      padding: 25px;
+      text-align: center;
+    }
+
+    .status-indicator {
+      width: 80px;
+      height: 80px;
+      border-radius: 50%;
+      margin: 0 auto 15px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 35px;
+      transition: all 0.3s;
+    }
+
+    .status-indicator.offline {
+      background: rgba(136, 136, 136, 0.2);
+      border: 3px solid var(--gray);
+    }
+
+    .status-indicator.online {
+      background: rgba(0, 200, 83, 0.2);
+      border: 3px solid var(--green);
+      animation: glow 2s infinite;
+    }
+
+    .status-text {
+      font-size: 22px;
+      font-weight: 800;
+      margin-bottom: 5px;
+    }
+
+    .status-text.offline { color: var(--gray); }
+    .status-text.online { color: var(--green); }
+
+    .status-sub {
+      font-size: 13px;
+      color: var(--gray);
+      margin-bottom: 20px;
+    }
+
+    .toggle-btn {
+      width: 100%;
+      padding: 18px;
+      border: none;
+      border-radius: 15px;
+      font-size: 18px;
+      font-weight: 700;
+      cursor: pointer;
+      transition: all 0.3s;
+    }
+
+    .toggle-btn.go-online {
+      background: var(--green);
+      color: var(--white);
+    }
+
+    .toggle-btn.go-offline {
+      background: var(--card);
+      color: var(--red);
+      border: 2px solid var(--red);
+    }
+
+    /* ===== MAP ===== */
+    .map-section {
+      flex: 1;
+      position: relative;
+    }
+
+    #driverMap {
+      width: 100%;
+      height: 100%;
+      min-height: 250px;
+    }
+
+    .gps-status {
+      position: absolute;
+      top: 10px;
+      left: 10px;
+      background: var(--card);
+      padding: 8px 15px;
+      border-radius: 20px;
+      font-size: 12px;
+      z-index: 1000;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .gps-dot {
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+      background: var(--gray);
+    }
+
+    .gps-dot.active {
+      background: var(--green);
+      animation: pulse 1.5s infinite;
+    }
+
+    /* ===== STATS ===== */
+    .stats-section {
+      background: var(--card);
+      padding: 20px;
+      border-top: 1px solid #333;
+    }
+
+    .stats-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 10px;
+    }
+
+    .stat-box {
+      background: var(--card-light);
+      border-radius: 15px;
+      padding: 15px;
+      text-align: center;
+    }
+
+    .stat-icon {
+      font-size: 24px;
+      margin-bottom: 5px;
+    }
+
+    .stat-value {
+      font-size: 22px;
+      font-weight: 800;
+      color: var(--gold);
+    }
+
+    .stat-label {
+      font-size: 11px;
+      color: var(--gray);
+      margin-top: 3px;
+    }
+
+    /* ===== BOTTOM NAV ===== */
+    .bottom-nav {
+      background: var(--card);
+      border-top: 1px solid #333;
+      display: flex;
+      justify-content: space-around;
+      padding: 10px 0;
+      padding-bottom: max(10px, env(safe-area-inset-bottom));
+    }
+
+    .nav-item {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 3px;
+      padding: 8px 15px;
+      border-radius: 10px;
+      cursor: pointer;
+      transition: all 0.3s;
+    }
+
+    .nav-item.active {
+      background: var(--gold);
+    }
+
+    .nav-item .icon {
+      font-size: 22px;
+    }
+
+    .nav-item .label {
+      font-size: 10px;
+      color: var(--gray);
+    }
+
+    .nav-item.active .label {
+      color: var(--bg);
+      font-weight: 700;
+    }
+
+    /* ===== PROFILE MODAL ===== */
+    .modal-overlay {
+      display: none;
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: rgba(0, 0, 0, 0.9);
+      z-index: 2000;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+    }
+
+    .modal-overlay.show {
+      display: flex;
+    }
+
+    .modal-card {
+      background: var(--card);
+      border: 2px solid var(--gold);
+      border-radius: 25px;
+      padding: 30px;
+      width: 100%;
+      max-width: 400px;
+      max-height: 80vh;
+      overflow-y: auto;
+    }
+
+    .modal-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 25px;
+    }
+
+    .modal-title {
+      font-size: 20px;
+      font-weight: 700;
+      color: var(--gold);
+    }
+
+    .modal-close {
+      background: none;
+      border: none;
+      font-size: 24px;
+      cursor: pointer;
+      color: var(--gray);
+    }
+
+    .profile-avatar {
+      width: 80px;
+      height: 80px;
+      border-radius: 50%;
+      background: var(--gold);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 40px;
+      margin: 0 auto 15px;
+    }
+
+    .profile-name {
+      text-align: center;
+      font-size: 22px;
+      font-weight: 700;
+      margin-bottom: 5px;
+    }
+
+    .profile-vehicle {
+      text-align: center;
+      color: var(--gray);
+      font-size: 14px;
+      margin-bottom: 25px;
+    }
+
+    .profile-stats {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 10px;
+      margin-bottom: 25px;
+    }
+
+    .profile-stat {
+      background: var(--card-light);
+      border-radius: 12px;
+      padding: 15px;
+      text-align: center;
+    }
+
+    .profile-stat-value {
+      font-size: 24px;
+      font-weight: 800;
+      color: var(--gold);
+    }
+
+    .profile-stat-label {
+      font-size: 12px;
+      color: var(--gray);
+    }
+
+    .profile-info {
+      background: var(--card-light);
+      border-radius: 12px;
+      padding: 15px;
+      margin-bottom: 15px;
+    }
+
+    .profile-info-row {
+      display: flex;
+      justify-content: space-between;
+      padding: 10px 0;
+      border-bottom: 1px solid #333;
+    }
+
+    .profile-info-row:last-child {
+      border-bottom: none;
+    }
+
+    .profile-info-label {
+      color: var(--gray);
+      font-size: 13px;
+    }
+
+    .profile-info-value {
+      font-size: 14px;
+      font-weight: 600;
+    }
+
+    .logout-btn-profile {
+      width: 100%;
+      padding: 15px;
+      background: var(--card-light);
+      border: 2px solid var(--red);
+      color: var(--red);
+      border-radius: 12px;
+      font-size: 16px;
+      font-weight: 700;
+      cursor: pointer;
+      margin-top: 10px;
+    }
+
+    .logout-btn-profile:hover {
+      background: var(--red);
+      color: var(--white);
+    }
+
+    /* ===== COURSE NOTIFICATION ===== */
+    .course-notification {
+      display: none;
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: rgba(0, 0, 0, 0.95);
+      z-index: 3000;
+      padding: 20px;
+      overflow-y: auto;
+    }
+
+    .course-notification.show {
+      display: block;
+    }
+
+    .course-card {
+      background: var(--card);
+      border: 3px solid var(--gold);
+      border-radius: 25px;
+      padding: 25px;
+      max-width: 450px;
+      margin: 0 auto;
+      animation: fadeIn 0.5s ease;
+    }
+
+    .course-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 20px;
+    }
+
+    .course-badge {
+      background: var(--gold);
+      color: var(--bg);
+      padding: 8px 16px;
+      border-radius: 20px;
+      font-size: 14px;
+      font-weight: 800;
+      animation: pulse 1s infinite;
+    }
+
+    .course-timer {
+      font-size: 32px;
+      font-weight: 800;
+      color: var(--gold);
+    }
+
+    .course-client {
+      display: flex;
+      align-items: center;
+      gap: 15px;
+      background: var(--card-light);
+      border-radius: 15px;
+      padding: 15px;
+      margin-bottom: 20px;
+    }
+
+    .client-avatar {
+      width: 60px;
+      height: 60px;
+      border-radius: 50%;
+      background: var(--gold);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 28px;
+    }
+
+    .client-info h3 {
+      font-size: 18px;
+      margin-bottom: 5px;
+    }
+
+    .client-rating {
+      color: var(--gold);
+      font-size: 14px;
+    }
+
+    .course-route {
+      background: var(--card-light);
+      border-radius: 15px;
+      padding: 15px;
+      margin-bottom: 20px;
+    }
+
+    .route-point {
+      display: flex;
+      align-items: flex-start;
+      gap: 12px;
+      padding: 10px 0;
+    }
+
+    .route-point:first-child {
+      border-bottom: 1px dashed #444;
+    }
+
+    .route-icon {
+      width: 30px;
+      height: 30px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 14px;
+      flex-shrink: 0;
+    }
+
+    .route-icon.pickup {
+      background: rgba(0, 200, 83, 0.2);
+      color: var(--green);
+    }
+
+    .route-icon.dropoff {
+      background: rgba(255, 82, 82, 0.2);
+      color: var(--red);
+    }
+
+    .route-details {
+      flex: 1;
+    }
+
+    .route-label {
+      font-size: 12px;
+      color: var(--gray);
+      margin-bottom: 3px;
+    }
+
+    .route-address {
+      font-size: 14px;
+      font-weight: 600;
+    }
+
+    .course-info {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 10px;
+      margin-bottom: 20px;
+    }
+
+    .course-info-box {
+      background: var(--card-light);
+      border-radius: 12px;
+      padding: 15px;
+      text-align: center;
+    }
+
+    .course-info-value {
+      font-size: 20px;
+      font-weight: 800;
+      color: var(--gold);
+    }
+
+    .course-info-label {
+      font-size: 11px;
+      color: var(--gray);
+      margin-top: 3px;
+    }
+
+    .course-actions {
+      display: flex;
+      gap: 10px;
+      margin-bottom: 15px;
+    }
+
+    .course-btn {
+      flex: 1;
+      padding: 18px;
+      border: none;
+      border-radius: 15px;
+      font-size: 16px;
+      font-weight: 700;
+      cursor: pointer;
+      transition: all 0.3s;
+    }
+
+    .course-btn.accept {
+      background: var(--green);
+      color: var(--white);
+    }
+
+    .course-btn.reject {
+      background: var(--card-light);
+      color: var(--red);
+      border: 2px solid var(--red);
+    }
+
+    /* ===== COURSE ACTIVE (en cours) ===== */
+    .course-active {
+      display: none;
+      position: fixed;
+      bottom: 70px;
+      left: 0;
+      right: 0;
+      background: var(--card);
+      border-top: 3px solid var(--gold);
+      padding: 20px;
+      z-index: 1500;
+      animation: slideUp 0.3s ease;
+    }
+
+    @keyframes slideUp {
+      from { transform: translateY(100%); }
+      to { transform: translateY(0); }
+    }
+
+    .course-active.show {
+      display: block;
+    }
+
+    .active-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 15px;
+    }
+
+    .active-status {
+      font-size: 16px;
+      font-weight: 700;
+      color: var(--green);
+    }
+
+    .active-price {
+      font-size: 20px;
+      font-weight: 800;
+      color: var(--gold);
+    }
+
+    .active-client {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      background: var(--card-light);
+      border-radius: 12px;
+      padding: 12px;
+      margin-bottom: 15px;
+    }
+
+    .active-client-avatar {
+      width: 45px;
+      height: 45px;
+      border-radius: 50%;
+      background: var(--gold);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 20px;
+    }
+
+    .active-client-info {
+      flex: 1;
+    }
+
+    .active-client-name {
+      font-weight: 700;
+      font-size: 15px;
+    }
+
+    .active-client-address {
+      font-size: 12px;
+      color: var(--gray);
+    }
+
+    /* ===== BOUTONS NAVIGATION ===== */
+    .nav-buttons {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 10px;
+      margin-bottom: 15px;
+    }
+
+    .nav-btn {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      padding: 14px;
+      border: none;
+      border-radius: 12px;
+      font-size: 14px;
+      font-weight: 700;
+      cursor: pointer;
+      transition: all 0.3s;
+    }
+
+    .nav-btn.google-maps {
+      background: #4285F4;
+      color: white;
+    }
+
+    .nav-btn.waze {
+      background: #33CCFF;
+      color: white;
+    }
+
+    .nav-btn.call {
+      background: var(--green);
+      color: white;
+    }
+
+    .nav-btn.whatsapp {
+      background: #25D366;
+      color: white;
+    }
+
+    .nav-btn:hover {
+      transform: scale(1.02);
+      opacity: 0.9;
+    }
+
+    .contact-buttons {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 10px;
+      margin-bottom: 15px;
+    }
+
+    .action-btn-course {
+      width: 100%;
+      padding: 16px;
+      background: var(--gold);
+      color: var(--bg);
+      border: none;
+      border-radius: 12px;
+      font-size: 16px;
+      font-weight: 700;
+      cursor: pointer;
+    }
+
+    .action-btn-course:hover {
+      background: var(--gold-dark);
+    }
+
+    .action-btn-course.cancel {
+      background: var(--card-light);
+      color: var(--red);
+      border: 2px solid var(--red);
+      margin-top: 10px;
+    }
+
+    /* ===== RESPONSIVE ===== */
+    @media (max-width: 400px) {
+      .login-card {
+        padding: 25px;
+      }
+
+      .status-card {
+        padding: 20px;
+      }
+
+      .status-indicator {
+        width: 60px;
+        height: 60px;
+        font-size: 28px;
+      }
+
+      .stat-value {
+        font-size: 18px;
+      }
+    }
+  </style>
+</head>
+
+<body>
+
+<!-- ===== LOADING SCREEN ===== -->
+<div class="loading-screen" id="loadingScreen">
+  <div class="loading-spinner"></div>
+  <div class="loading-text">Chargement de DIGIY DRIVER...</div>
+</div>
+
+<!-- ===== LOGIN SCREEN ===== -->
+<div class="login-screen" id="loginScreen">
+  <div class="login-logo">🚗</div>
+  <div class="login-title">DIGIY DRIVER</div>
+  <div class="login-subtitle">Espace Chauffeur — 0% Commission</div>
+  
+  <div class="login-card">
+    <input type="tel" class="login-input" id="loginPhone" placeholder="📱 Numéro WhatsApp (+221...)">
+    <input type="password" class="login-input" id="loginCode" placeholder="🔐 Code d'accès">
+    
+    <button class="login-btn" id="loginBtn" onclick="handleLogin()">Connexion</button>
+    
+    <div class="login-error" id="loginError">Numéro ou code incorrect</div>
+  </div>
+  
+  <div class="login-help">
+    Pas encore inscrit ? <a href="https://digiylyfe.com/page-inscription-digiy/">Rejoindre DIGIY DRIVER</a>
+  </div>
+</div>
+
+<!-- ===== APP CHAUFFEUR ===== -->
+<div class="driver-app" id="driverApp">
+  
+  <!-- SYNC STATUS -->
+  <div class="sync-status">
+    <div class="sync-dot" id="syncDot"></div>
+    <span id="syncText">Hors ligne</span>
+  </div>
+
+  <!-- HEADER -->
+  <header class="app-header">
+    <div class="header-left">
+      <span class="header-logo">🚗</span>
+      <div class="header-text">
+        <h1>DIGIY DRIVER</h1>
+        <p id="driverGreeting">Bienvenue !</p>
+      </div>
+    </div>
+    <div class="header-right">
+      <div class="earnings-badge">
+        <div class="amount" id="todayEarnings">0 F</div>
+        <div class="label">Aujourd'hui</div>
+      </div>
+    </div>
+  </header>
+
+  <!-- STATUS TOGGLE -->
+  <section class="status-section">
+    <div class="status-card">
+      <div class="status-indicator offline" id="statusIndicator">
+        <span id="statusEmoji">😴</span>
+      </div>
+      <div class="status-text offline" id="statusText">Hors ligne</div>
+      <div class="status-sub" id="statusSub">Passez en ligne pour recevoir des courses</div>
+      
+      <button class="toggle-btn go-online" id="toggleBtn" onclick="toggleStatus()">
+        🟢 Passer en ligne
+      </button>
+    </div>
+  </section>
+
+  <!-- MAP -->
+  <section class="map-section">
+    <div class="gps-status">
+      <div class="gps-dot" id="gpsDot"></div>
+      <span id="gpsText">GPS inactif</span>
+    </div>
+    <div id="driverMap"></div>
+  </section>
+
+  <!-- STATS -->
+  <section class="stats-section">
+    <div class="stats-grid">
+      <div class="stat-box">
+        <div class="stat-icon">🚕</div>
+        <div class="stat-value" id="statCourses">0</div>
+        <div class="stat-label">Courses</div>
+      </div>
+      <div class="stat-box">
+        <div class="stat-icon">⏱️</div>
+        <div class="stat-value" id="statTime">0h</div>
+        <div class="stat-label">En ligne</div>
+      </div>
+      <div class="stat-box">
+        <div class="stat-icon">⭐</div>
+        <div class="stat-value" id="statRating">5.0</div>
+        <div class="stat-label">Note</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- BOTTOM NAV -->
+  <nav class="bottom-nav">
+    <div class="nav-item active">
+      <span class="icon">🏠</span>
+      <span class="label">Accueil</span>
+    </div>
+    <div class="nav-item">
+      <span class="icon">📊</span>
+      <span class="label">Stats</span>
+    </div>
+    <div class="nav-item">
+      <span class="icon">💰</span>
+      <span class="label">Gains</span>
+    </div>
+    <div class="nav-item" onclick="showProfile()">
+      <span class="icon">👤</span>
+      <span class="label">Profil</span>
+    </div>
+  </nav>
+</div>
+
+<!-- ===== NOTIFICATION NOUVELLE COURSE ===== -->
+<div class="course-notification" id="courseNotification">
+  <div class="course-card">
+    <div class="course-header">
+      <div class="course-badge">🚗 NOUVELLE COURSE</div>
+      <div class="course-timer" id="courseTimer">15</div>
+    </div>
+    
+    <div class="course-client">
+      <div class="client-avatar">👤</div>
+      <div class="client-info">
+        <h3 id="clientName">Client</h3>
+        <div class="client-rating">⭐ <span id="clientRating">4.8</span> • <span id="clientRides">12</span> courses</div>
+      </div>
+    </div>
+    
+    <div class="course-route">
+      <div class="route-point">
+        <div class="route-icon pickup">📍</div>
+        <div class="route-details">
+          <div class="route-label">Point de départ</div>
+          <div class="route-address" id="pickupAddress">Adresse de départ</div>
+        </div>
+      </div>
+      <div class="route-point">
+        <div class="route-icon dropoff">🏁</div>
+        <div class="route-details">
+          <div class="route-label">Destination</div>
+          <div class="route-address" id="dropoffAddress">Adresse d'arrivée</div>
+        </div>
+      </div>
+    </div>
+    
+    <div class="course-info">
+      <div class="course-info-box">
+        <div class="course-info-value" id="courseDistance">3.5 km</div>
+        <div class="course-info-label">Distance</div>
+      </div>
+      <div class="course-info-box">
+        <div class="course-info-value" id="courseDuration">12 min</div>
+        <div class="course-info-label">Durée</div>
+      </div>
+      <div class="course-info-box">
+        <div class="course-info-value" id="coursePrice">2 500 F</div>
+        <div class="course-info-label">Prix</div>
+      </div>
+    </div>
+    
+    <div class="course-actions">
+      <button class="course-btn reject" onclick="rejectCourse()">✕ Refuser</button>
+      <button class="course-btn accept" onclick="acceptCourse()">✓ Accepter</button>
+    </div>
+  </div>
+</div>
+
+<!-- ===== COURSE ACTIVE (en cours) ===== -->
+<div class="course-active" id="courseActive">
+  <div class="active-header">
+    <div class="active-status" id="activeStatus">🚗 En route vers le client</div>
+    <div class="active-price" id="activePrice">2 500 F</div>
+  </div>
+  
+  <div class="active-client">
+    <div class="active-client-avatar">👤</div>
+    <div class="active-client-info">
+      <div class="active-client-name" id="activeClientName">Client</div>
+      <div class="active-client-address" id="activeClientAddress">Adresse du client</div>
+    </div>
+  </div>
+  
+  <!-- BOUTONS NAVIGATION GPS -->
+  <div class="nav-buttons">
+    <button class="nav-btn google-maps" onclick="naviguerGoogleMaps()">
+      📍 Google Maps
+    </button>
+    <button class="nav-btn waze" onclick="naviguerWaze()">
+      🗺️ Waze
+    </button>
+  </div>
+  
+  <!-- BOUTONS CONTACT CLIENT -->
+  <div class="contact-buttons">
+    <button class="nav-btn call" onclick="appelerClient()">
+      📞 Appeler
+    </button>
+    <button class="nav-btn whatsapp" onclick="contacterWhatsApp()">
+      💬 WhatsApp
+    </button>
+  </div>
+  
+  <button class="action-btn-course" id="actionBtnCourse" onclick="nextCourseStep()">
+    📍 Je suis arrivé
+  </button>
+  
+  <button class="action-btn-course cancel" onclick="cancelCourse()">
+    ✕ Annuler la course
+  </button>
+</div>
+
+<!-- ===== PROFILE MODAL ===== -->
+<div class="modal-overlay" id="profileModal">
+  <div class="modal-card">
+    <div class="modal-header">
+      <div class="modal-title">Mon Profil</div>
+      <button class="modal-close" onclick="hideProfile()">✕</button>
+    </div>
+    
+    <div class="profile-avatar">👤</div>
+    <div class="profile-name" id="profileName">—</div>
+    <div class="profile-vehicle" id="profileVehicle">—</div>
+    
+    <div class="profile-stats">
+      <div class="profile-stat">
+        <div class="profile-stat-value" id="profileCourses">0</div>
+        <div class="profile-stat-label">Courses totales</div>
+      </div>
+      <div class="profile-stat">
+        <div class="profile-stat-value" id="profileEarnings">0 F</div>
+        <div class="profile-stat-label">Gains ce mois</div>
+      </div>
+    </div>
+    
+    <div class="profile-info">
+      <div class="profile-info-row">
+        <span class="profile-info-label">📱 Téléphone</span>
+        <span class="profile-info-value" id="profilePhone">—</span>
+      </div>
+      <div class="profile-info-row">
+        <span class="profile-info-label">🚗 Véhicule</span>
+        <span class="profile-info-value" id="profileVehicleDetail">—</span>
+      </div>
+      <div class="profile-info-row">
+        <span class="profile-info-label">🔢 Plaque</span>
+        <span class="profile-info-value" id="profilePlate">—</span>
+      </div>
+      <div class="profile-info-row">
+        <span class="profile-info-label">📍 Ville</span>
+        <span class="profile-info-value" id="profileCity">—</span>
+      </div>
+      <div class="profile-info-row">
+        <span class="profile-info-label">📅 Inscrit le</span>
+        <span class="profile-info-value" id="profileDate">—</span>
+      </div>
+    </div>
+    
+    <div class="profile-info" style="background: rgba(0, 200, 83, 0.1); border: 1px solid var(--green);">
+      <div style="text-align: center; color: var(--green); font-weight: 700;">
+        💰 0% COMMISSION<br>
+        <small style="color: var(--gray); font-weight: 400;">Tu gardes 100% de tes gains !</small>
+      </div>
+    </div>
+    
+    <button class="logout-btn-profile" onclick="handleLogout()">
+      🚪 Déconnexion
+    </button>
+  </div>
+</div>
+
+<!-- LEAFLET JS -->
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+
+<script>
+  // ===== CONFIGURATION =====
+  const API_URL = 'https://digiylyfe-api.onrender.com';
+  const STORAGE_KEY = 'digiy_driver_session';
+  const GPS_INTERVAL = 10000; // Envoi GPS toutes les 10 secondes
+
+  // ===== STATE =====
+  let currentDriver = null;
+  let isOnline = false;
+  let map = null;
+  let driverMarker = null;
+  let gpsWatchId = null;
+  let gpsIntervalId = null;
+  let currentPosition = null;
+  let timeOnline = 0;
+  let timeInterval = null;
+  let todayCourses = 0;
+  let todayEarnings = 0;
+  let isConnectedToAPI = false;
+
+  // ===== LOCAL STORAGE =====
+  function saveSession() {
+    const session = {
+      driver: currentDriver,
+      isOnline: isOnline,
+      timeOnline: timeOnline,
+      todayCourses: todayCourses,
+      todayEarnings: todayEarnings,
+      lastUpdate: Date.now()
+    };
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(session));
+    console.log('💾 Session sauvegardée');
+  }
+
+  function loadSession() {
+    try {
+      const data = localStorage.getItem(STORAGE_KEY);
+      if (data) {
+        const session = JSON.parse(data);
+        
+        // Vérifier si la session date d'aujourd'hui
+        const today = new Date().toDateString();
+        const sessionDate = new Date(session.lastUpdate).toDateString();
+        
+        if (sessionDate === today) {
+          return session;
+        } else {
+          // Nouvelle journée = reset des stats du jour
+          return {
+            ...session,
+            todayCourses: 0,
+            todayEarnings: 0,
+            timeOnline: 0,
+            isOnline: false
+          };
+        }
+      }
+    } catch (e) {
+      console.error('Erreur chargement session:', e);
+    }
+    return null;
+  }
+
+  function clearSession() {
+    localStorage.removeItem(STORAGE_KEY);
+    console.log('🗑️ Session supprimée');
+  }
+
+  // ===== SYNC STATUS =====
+  function updateSyncStatus(status) {
+    const dot = document.getElementById('syncDot');
+    const text = document.getElementById('syncText');
+    
+    dot.classList.remove('synced', 'syncing', 'offline');
+    
+    switch (status) {
+      case 'synced':
+        dot.classList.add('synced');
+        text.textContent = 'Synchronisé';
+        break;
+      case 'syncing':
+        dot.classList.add('syncing');
+        text.textContent = 'Synchronisation...';
+        break;
+      case 'offline':
+        dot.classList.add('offline');
+        text.textContent = 'Hors connexion';
+        break;
+    }
+  }
+
+  // ===== API CALLS =====
+  async function syncWithAPI() {
+    if (!currentDriver) return;
+    
+    updateSyncStatus('syncing');
+    
+    try {
+      // Envoyer les données au serveur
+      const response = await fetch(`${API_URL}/api/drivers/sync`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          phone: currentDriver.phone,
+          isOnline: isOnline,
+          position: currentPosition,
+          todayCourses: todayCourses,
+          todayEarnings: todayEarnings,
+          timeOnline: timeOnline
+        })
+      });
+      
+      if (response.ok) {
+        isConnectedToAPI = true;
+        updateSyncStatus('synced');
+        console.log('✅ Synchronisé avec le serveur');
+      } else {
+        throw new Error('Erreur serveur');
+      }
+    } catch (error) {
+      console.log('⚠️ Mode hors ligne (API non disponible)');
+      isConnectedToAPI = false;
+      updateSyncStatus('offline');
+    }
+  }
+
+  async function sendPositionToServer(position) {
+    if (!currentDriver || !isOnline) return;
+    
+    try {
+      await fetch(`${API_URL}/api/drivers/position`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          phone: currentDriver.phone,
+          lat: position.lat,
+          lng: position.lng,
+          timestamp: Date.now()
+        })
+      });
+      console.log('📍 Position envoyée:', position.lat.toFixed(5), position.lng.toFixed(5));
+    } catch (error) {
+      console.log('⚠️ Position sauvegardée localement');
+    }
+    
+    // Toujours sauvegarder localement
+    saveSession();
+  }
+
+  async function updateStatusOnServer(online) {
+    if (!currentDriver) return;
+    
+    try {
+      await fetch(`${API_URL}/api/drivers/status`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          phone: currentDriver.phone,
+          online: online,
+          timestamp: Date.now()
+        })
+      });
+      console.log('📡 Statut envoyé:', online ? 'En ligne' : 'Hors ligne');
+    } catch (error) {
+      console.log('⚠️ Statut sauvegardé localement');
+    }
+    
+    saveSession();
+  }
+
+  // ===== LOGIN =====
+  async function handleLogin() {
+    const phone = document.getElementById('loginPhone').value.replace(/\s/g, '');
+    const code = document.getElementById('loginCode').value;
+    const errorEl = document.getElementById('loginError');
+    const btn = document.getElementById('loginBtn');
+
+    if (!phone || !code) {
+      errorEl.classList.add('show');
+      return;
+    }
+
+    btn.disabled = true;
+    btn.textContent = 'Connexion...';
+    errorEl.classList.remove('show');
+
+    try {
+      // Essayer de se connecter à l'API
+      const response = await fetch(`${API_URL}/api/drivers/login`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ phone, code })
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        currentDriver = data.driver;
+        isConnectedToAPI = true;
+        showApp();
+        saveSession();
+        updateSyncStatus('synced');
+      } else {
+        throw new Error('Identifiants incorrects');
+      }
+    } catch (error) {
+      // Mode démo / hors ligne
+      console.log('⚠️ Mode démo activé');
+      
+      // Comptes de test
+      const DEMO_DRIVERS = {
+        '+221771234567': {
+          code: '1234',
+          name: 'Mamadou Diallo',
+          phone: '+221 77 123 4567',
+          vehicle: 'Toyota Corolla',
+          vehicleType: 'Berline',
+          plate: 'DK-1234-AB',
+          city: 'Dakar',
+          joinDate: '15 Jan 2024',
+          totalCourses: 156,
+          monthEarnings: 485000,
+          rating: 4.9
+        },
+        '+221782345678': {
+          code: '5678',
+          name: 'Ibrahima Ndiaye',
+          phone: '+221 78 234 5678',
+          vehicle: 'Peugeot 308',
+          vehicleType: 'Berline',
+          plate: 'DK-5678-CD',
+          city: 'Dakar',
+          joinDate: '20 Fév 2024',
+          totalCourses: 89,
+          monthEarnings: 312000,
+          rating: 4.8
+        }
+      };
+
+      const driver = DEMO_DRIVERS[phone];
+      
+      if (driver && driver.code === code) {
+        currentDriver = driver;
+        showApp();
+        saveSession();
+        updateSyncStatus('offline');
+      } else {
+        errorEl.classList.add('show');
+      }
+    }
+
+    btn.disabled = false;
+    btn.textContent = 'Connexion';
+  }
+
+  function handleLogout() {
+    if (isOnline) {
+      toggleStatus();
+    }
+    
+    clearSession();
+    currentDriver = null;
+    todayCourses = 0;
+    todayEarnings = 0;
+    timeOnline = 0;
+    
+    document.getElementById('driverApp').classList.remove('show');
+    document.getElementById('loginScreen').classList.add('show');
+    document.getElementById('loginPhone').value = '';
+    document.getElementById('loginCode').value = '';
+    hideProfile();
+  }
+
+  // ===== APP =====
+  function showApp() {
+    document.getElementById('loginScreen').classList.remove('show');
+    document.getElementById('driverApp').classList.add('show');
+    
+    // Charger les infos du chauffeur
+    document.getElementById('driverGreeting').textContent = `Salam ${currentDriver.name.split(' ')[0]} !`;
+    document.getElementById('statRating').textContent = currentDriver.rating;
+    document.getElementById('todayEarnings').textContent = todayEarnings.toLocaleString() + ' F';
+    document.getElementById('statCourses').textContent = todayCourses;
+    
+    // Profil
+    document.getElementById('profileName').textContent = currentDriver.name;
+    document.getElementById('profileVehicle').textContent = `${currentDriver.vehicle} • ${currentDriver.vehicleType}`;
+    document.getElementById('profilePhone').textContent = currentDriver.phone;
+    document.getElementById('profileVehicleDetail').textContent = currentDriver.vehicle;
+    document.getElementById('profilePlate').textContent = currentDriver.plate;
+    document.getElementById('profileCity').textContent = currentDriver.city;
+    document.getElementById('profileDate').textContent = currentDriver.joinDate;
+    document.getElementById('profileCourses').textContent = currentDriver.totalCourses + todayCourses;
+    document.getElementById('profileEarnings').textContent = (currentDriver.monthEarnings + todayEarnings).toLocaleString() + ' F';
+    
+    initMap();
+    
+    // Sync avec le serveur
+    syncWithAPI();
+    
+    // Auto-sync toutes les 60 secondes
+    setInterval(syncWithAPI, 60000);
+  }
+
+  // ===== MAP =====
+  function initMap() {
+    const DAKAR_CENTER = [14.6928, -17.4467];
+    
+    if (map) {
+      map.remove();
+    }
+    
+    map = L.map('driverMap').setView(DAKAR_CENTER, 14);
+    
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+      attribution: '© DIGIY DRIVER'
+    }).addTo(map);
+
+    // Marqueur chauffeur
+    const driverIcon = L.divIcon({
+      className: 'custom-marker',
+      html: `<div style="
+        background: #FFD700;
+        width: 40px;
+        height: 40px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 22px;
+        border: 3px solid #0a0a0a;
+        box-shadow: 0 3px 15px rgba(0,0,0,0.4);
+      ">🚗</div>`,
+      iconSize: [40, 40],
+      iconAnchor: [20, 20]
+    });
+
+    driverMarker = L.marker(DAKAR_CENTER, { icon: driverIcon }).addTo(map);
+  }
+
+  function updateMapPosition(lat, lng) {
+    if (map && driverMarker) {
+      driverMarker.setLatLng([lat, lng]);
+      map.setView([lat, lng], 15);
+    }
+  }
+
+  // ===== GPS =====
+  function startGPS() {
+    if (!navigator.geolocation) {
+      alert("Votre navigateur ne supporte pas le GPS");
+      return;
+    }
+
+    document.getElementById('gpsDot').classList.add('active');
+    document.getElementById('gpsText').textContent = 'GPS actif';
+
+    // Watch position en continu
+    gpsWatchId = navigator.geolocation.watchPosition(
+      (position) => {
+        currentPosition = {
+          lat: position.coords.latitude,
+          lng: position.coords.longitude
+        };
+        updateMapPosition(currentPosition.lat, currentPosition.lng);
+      },
+      (error) => {
+        console.error('Erreur GPS:', error);
+        document.getElementById('gpsText').textContent = 'Erreur GPS';
+      },
+      {
+        enableHighAccuracy: true,
+        timeout: 10000,
+        maximumAge: 5000
+      }
+    );
+
+    // Envoyer la position au serveur toutes les X secondes
+    gpsIntervalId = setInterval(() => {
+      if (currentPosition && isOnline) {
+        sendPositionToServer(currentPosition);
+      }
+    }, GPS_INTERVAL);
+  }
+
+  function stopGPS() {
+    if (gpsWatchId) {
+      navigator.geolocation.clearWatch(gpsWatchId);
+      gpsWatchId = null;
+    }
+    if (gpsIntervalId) {
+      clearInterval(gpsIntervalId);
+      gpsIntervalId = null;
+    }
+    document.getElementById('gpsDot').classList.remove('active');
+    document.getElementById('gpsText').textContent = 'GPS inactif';
+  }
+
+  // ===== STATUS TOGGLE =====
+  function toggleStatus() {
+    isOnline = !isOnline;
+    
+    const indicator = document.getElementById('statusIndicator');
+    const emoji = document.getElementById('statusEmoji');
+    const text = document.getElementById('statusText');
+    const sub = document.getElementById('statusSub');
+    const btn = document.getElementById('toggleBtn');
+
+    if (isOnline) {
+      indicator.classList.remove('offline');
+      indicator.classList.add('online');
+      emoji.textContent = '🚗';
+      text.textContent = 'En ligne';
+      text.classList.remove('offline');
+      text.classList.add('online');
+      sub.textContent = 'Vous recevez des courses';
+      btn.textContent = '🔴 Passer hors ligne';
+      btn.classList.remove('go-online');
+      btn.classList.add('go-offline');
+      
+      startGPS();
+      startTimeCounter();
+      updateStatusOnServer(true);
+      
+    } else {
+      indicator.classList.remove('online');
+      indicator.classList.add('offline');
+      emoji.textContent = '😴';
+      text.textContent = 'Hors ligne';
+      text.classList.remove('online');
+      text.classList.add('offline');
+      sub.textContent = 'Passez en ligne pour recevoir des courses';
+      btn.textContent = '🟢 Passer en ligne';
+      btn.classList.remove('go-offline');
+      btn.classList.add('go-online');
+      
+      stopGPS();
+      stopTimeCounter();
+      updateStatusOnServer(false);
+    }
+    
+    saveSession();
+  }
+
+  // ===== TIME COUNTER =====
+  function startTimeCounter() {
+    timeInterval = setInterval(() => {
+      timeOnline++;
+      const hours = Math.floor(timeOnline / 3600);
+      const mins = Math.floor((timeOnline % 3600) / 60);
+      document.getElementById('statTime').textContent = hours > 0 ? `${hours}h${mins}` : `${mins}m`;
+      
+      // Sauvegarder toutes les minutes
+      if (timeOnline % 60 === 0) {
+        saveSession();
+      }
+    }, 1000);
+  }
+
+  function stopTimeCounter() {
+    if (timeInterval) {
+      clearInterval(timeInterval);
+      timeInterval = null;
+    }
+    saveSession();
+  }
+
+  // ===== PROFILE MODAL =====
+  function showProfile() {
+    document.getElementById('profileModal').classList.add('show');
+  }
+
+  function hideProfile() {
+    document.getElementById('profileModal').classList.remove('show');
+  }
+
+  // ===== INIT =====
+  document.addEventListener('DOMContentLoaded', () => {
+    // Vérifier si une session existe
+    const session = loadSession();
+    
+    setTimeout(() => {
+      document.getElementById('loadingScreen').classList.add('hidden');
+      
+      if (session && session.driver) {
+        // Session existante = reconnexion automatique
+        currentDriver = session.driver;
+        timeOnline = session.timeOnline || 0;
+        todayCourses = session.todayCourses || 0;
+        todayEarnings = session.todayEarnings || 0;
+        
+        showApp();
+        
+        // Restaurer le temps en ligne
+        const hours = Math.floor(timeOnline / 3600);
+        const mins = Math.floor((timeOnline % 3600) / 60);
+        document.getElementById('statTime').textContent = hours > 0 ? `${hours}h${mins}` : `${mins}m`;
+        
+        console.log('🔄 Session restaurée pour', currentDriver.name);
+      } else {
+        // Pas de session = afficher login
+        document.getElementById('loginScreen').classList.add('show');
+      }
+    }, 1000);
+  });
+
+  // ===== ENTER KEY LOGIN =====
+  document.addEventListener('keypress', (e) => {
+    if (e.key === 'Enter' && document.getElementById('loginScreen').classList.contains('show')) {
+      handleLogin();
+    }
+  });
+
+  // ===== SAVE ON PAGE CLOSE =====
+  window.addEventListener('beforeunload', () => {
+    if (currentDriver) {
+      saveSession();
+    }
+  });
+
+  // ============================================
+  // 🚗 SYSTÈME DE COURSES ET NAVIGATION GPS
+  // ============================================
+
+  // Variables pour les courses
+  let courseActive = null;
+  let courseTimerInterval = null;
+  let courseStep = 0;
+
+  // Données de courses simulées (réalistes Dakar)
+  const FAKE_COURSES = [
+    { 
+      clientNom: "Aminata Fall", 
+      clientTel: "+221771234567",
+      clientRating: 4.8,
+      clientRides: 23,
+      pickupAddress: "Médina, Rue 10 x Corniche",
+      dropoffAddress: "Almadies, Sea Plaza",
+      pickupLat: 14.6867,
+      pickupLng: -17.4457,
+      dropoffLat: 14.7453,
+      dropoffLng: -17.5133,
+      distance: "4.2 km",
+      duration: "14 min",
+      price: 2800
+    },
+    { 
+      clientNom: "Moussa Diallo", 
+      clientTel: "+221782345678",
+      clientRating: 4.9,
+      clientRides: 45,
+      pickupAddress: "Plateau, Place de l'Indépendance",
+      dropoffAddress: "Ouakam, près de la Mosquée",
+      pickupLat: 14.6678,
+      pickupLng: -17.4353,
+      dropoffLat: 14.7234,
+      dropoffLng: -17.4789,
+      distance: "3.8 km",
+      duration: "11 min",
+      price: 2200
+    },
+    { 
+      clientNom: "Fatou Sow", 
+      clientTel: "+221773456789",
+      clientRating: 4.7,
+      clientRides: 12,
+      pickupAddress: "Grand Dakar, Marché HLM",
+      dropoffAddress: "Yoff, Aéroport LSS",
+      pickupLat: 14.6912,
+      pickupLng: -17.4567,
+      dropoffLat: 14.7397,
+      dropoffLng: -17.4902,
+      distance: "6.5 km",
+      duration: "20 min",
+      price: 3800
+    },
+    { 
+      clientNom: "Ibrahima Ndiaye", 
+      clientTel: "+221784567890",
+      clientRating: 4.6,
+      clientRides: 67,
+      pickupAddress: "Parcelles Assainies U14",
+      dropoffAddress: "Centre-ville, Sandaga",
+      pickupLat: 14.7634,
+      pickupLng: -17.4234,
+      dropoffLat: 14.6712,
+      dropoffLng: -17.4389,
+      distance: "5.2 km",
+      duration: "16 min",
+      price: 3200
+    },
+    { 
+      clientNom: "Aissatou Ba", 
+      clientTel: "+221775678901",
+      clientRating: 5.0,
+      clientRides: 8,
+      pickupAddress: "Liberté 6, Rond-point",
+      dropoffAddress: "Sacré-Cœur 3, Villa 123",
+      pickupLat: 14.7123,
+      pickupLng: -17.4678,
+      dropoffLat: 14.7234,
+      dropoffLng: -17.4556,
+      distance: "2.1 km",
+      duration: "8 min",
+      price: 1800
+    }
+  ];
+
+  // Simuler réception de course quand en ligne
+  function simulerCourse() {
+    if (!isOnline) return;
+    
+    // Sélectionner une course aléatoire
+    courseActive = FAKE_COURSES[Math.floor(Math.random() * FAKE_COURSES.length)];
+    
+    // Remplir les données
+    document.getElementById('clientName').textContent = courseActive.clientNom;
+    document.getElementById('clientRating').textContent = courseActive.clientRating;
+    document.getElementById('clientRides').textContent = courseActive.clientRides;
+    document.getElementById('pickupAddress').textContent = courseActive.pickupAddress;
+    document.getElementById('dropoffAddress').textContent = courseActive.dropoffAddress;
+    document.getElementById('courseDistance').textContent = courseActive.distance;
+    document.getElementById('courseDuration').textContent = courseActive.duration;
+    document.getElementById('coursePrice').textContent = courseActive.price.toLocaleString() + ' F';
+    
+    // Afficher la notification
+    document.getElementById('courseNotification').classList.add('show');
+    
+    // Démarrer le countdown
+    let countdown = 15;
+    document.getElementById('courseTimer').textContent = countdown;
+    
+    courseTimerInterval = setInterval(() => {
+      countdown--;
+      document.getElementById('courseTimer').textContent = countdown;
+      
+      if (countdown <= 0) {
+        clearInterval(courseTimerInterval);
+        rejectCourse();
+      }
+    }, 1000);
+    
+    // Vibration si supportée
+    if (navigator.vibrate) {
+      navigator.vibrate([200, 100, 200]);
+    }
+  }
+
+  // Accepter la course
+  function acceptCourse() {
+    clearInterval(courseTimerInterval);
+    document.getElementById('courseNotification').classList.remove('show');
+    
+    // Afficher la course active
+    document.getElementById('activeClientName').textContent = courseActive.clientNom;
+    document.getElementById('activeClientAddress').textContent = courseActive.pickupAddress;
+    document.getElementById('activePrice').textContent = courseActive.price.toLocaleString() + ' F';
+    document.getElementById('activeStatus').textContent = '🚗 En route vers le client';
+    document.getElementById('actionBtnCourse').textContent = '📍 Je suis arrivé';
+    
+    document.getElementById('courseActive').classList.add('show');
+    
+    courseStep = 1;
+    
+    console.log('✅ Course acceptée:', courseActive.clientNom);
+  }
+
+  // Refuser la course
+  function rejectCourse() {
+    clearInterval(courseTimerInterval);
+    document.getElementById('courseNotification').classList.remove('show');
+    courseActive = null;
+    
+    // Proposer une autre course dans quelques secondes
+    if (isOnline) {
+      setTimeout(simulerCourse, 8000 + Math.random() * 7000);
+    }
+  }
+
+  // Étapes de la course
+  function nextCourseStep() {
+    courseStep++;
+    
+    const statusEl = document.getElementById('activeStatus');
+    const btnEl = document.getElementById('actionBtnCourse');
+    const addressEl = document.getElementById('activeClientAddress');
+    
+    switch(courseStep) {
+      case 2:
+        statusEl.textContent = '👤 Client à bord';
+        btnEl.textContent = '🚗 Démarrer la course';
+        addressEl.textContent = courseActive.dropoffAddress;
+        break;
+      case 3:
+        statusEl.textContent = '🚗 En route vers destination';
+        btnEl.textContent = '🏁 Arrivé à destination';
+        break;
+      case 4:
+        statusEl.textContent = '🏁 Arrivé !';
+        btnEl.textContent = '✅ Terminer la course';
+        break;
+      case 5:
+        // Course terminée
+        finishCourse();
+        break;
+    }
+  }
+
+  // Terminer la course
+  function finishCourse() {
+    document.getElementById('courseActive').classList.remove('show');
+    
+    // Mettre à jour les stats
+    todayCourses++;
+    todayEarnings += courseActive.price;
+    
+    document.getElementById('statCourses').textContent = todayCourses;
+    document.getElementById('todayEarnings').textContent = todayEarnings.toLocaleString() + ' F';
+    
+    // Alert de confirmation
+    alert(`🎉 Course terminée !\n\n💰 +${courseActive.price.toLocaleString()} FCFA\n📊 ${todayCourses} courses aujourd'hui\n\n0% commission = 100% pour toi !`);
+    
+    courseActive = null;
+    courseStep = 0;
+    
+    saveSession();
+    
+    // Nouvelle course dans quelques secondes
+    if (isOnline) {
+      setTimeout(simulerCourse, 10000 + Math.random() * 10000);
+    }
+  }
+
+  // Annuler la course
+  function cancelCourse() {
+    if (confirm('Voulez-vous vraiment annuler cette course ?')) {
+      document.getElementById('courseActive').classList.remove('show');
+      courseActive = null;
+      courseStep = 0;
+      
+      if (isOnline) {
+        setTimeout(simulerCourse, 5000);
+      }
+    }
+  }
+
+  // ============================================
+  // 🗺️ FONCTIONS DE NAVIGATION GPS
+  // ============================================
+
+  // Ouvrir Google Maps pour navigation
+  function naviguerGoogleMaps() {
+    if (!courseActive) {
+      alert('Aucune course active');
+      return;
+    }
+    
+    // Déterminer la destination selon l'étape
+    let destLat, destLng;
+    if (courseStep <= 2) {
+      // En route vers le client
+      destLat = courseActive.pickupLat;
+      destLng = courseActive.pickupLng;
+    } else {
+      // En route vers la destination
+      destLat = courseActive.dropoffLat;
+      destLng = courseActive.dropoffLng;
+    }
+    
+    // URL Google Maps avec navigation
+    const url = `https://www.google.com/maps/dir/?api=1&destination=${destLat},${destLng}&travelmode=driving`;
+    
+    console.log('🗺️ Ouverture Google Maps:', url);
+    window.open(url, '_blank');
+  }
+
+  // Ouvrir Waze pour navigation
+  function naviguerWaze() {
+    if (!courseActive) {
+      alert('Aucune course active');
+      return;
+    }
+    
+    // Déterminer la destination selon l'étape
+    let destLat, destLng;
+    if (courseStep <= 2) {
+      destLat = courseActive.pickupLat;
+      destLng = courseActive.pickupLng;
+    } else {
+      destLat = courseActive.dropoffLat;
+      destLng = courseActive.dropoffLng;
+    }
+    
+    // URL Waze avec navigation
+    const url = `https://waze.com/ul?ll=${destLat},${destLng}&navigate=yes`;
+    
+    console.log('🗺️ Ouverture Waze:', url);
+    window.open(url, '_blank');
+  }
+
+  // ============================================
+  // 📞 FONCTIONS DE CONTACT CLIENT
+  // ============================================
+
+  // Appeler le client
+  function appelerClient() {
+    if (!courseActive || !courseActive.clientTel) {
+      alert('Numéro du client non disponible');
+      return;
+    }
+    
+    const tel = courseActive.clientTel.replace(/\s/g, '');
+    window.open(`tel:${tel}`, '_self');
+    
+    console.log('📞 Appel client:', tel);
+  }
+
+  // Contacter via WhatsApp
+  function contacterWhatsApp() {
+    if (!courseActive || !courseActive.clientTel) {
+      alert('Numéro du client non disponible');
+      return;
+    }
+    
+    const tel = courseActive.clientTel.replace(/[^0-9+]/g, '');
+    const message = encodeURIComponent(
+      `Bonjour ${courseActive.clientNom.split(' ')[0]} ! 🚗\n` +
+      `Je suis votre chauffeur DIGIY DRIVER.\n` +
+      `J'arrive bientôt à votre position.\n` +
+      `À tout de suite ! 👋`
+    );
+    
+    const url = `https://wa.me/${tel}?text=${message}`;
+    window.open(url, '_blank');
+    
+    console.log('💬 WhatsApp client:', tel);
+  }
+
+  // ============================================
+  // 🔄 MODIFICATION DU TOGGLE STATUS
+  // ============================================
+
+  // Intercepter le passage en ligne pour démarrer les courses
+  const originalToggleStatus = toggleStatus;
+  toggleStatus = function() {
+    originalToggleStatus();
+    
+    // Si on passe en ligne, démarrer la simulation de courses
+    if (isOnline) {
+      console.log('🟢 En ligne - Simulation de courses activée');
+      setTimeout(simulerCourse, 5000 + Math.random() * 5000);
+    }
+  };
+</script>
+
+</body>
+</html>
