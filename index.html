@@ -3353,14 +3353,18 @@
             showToast('Appel en cours...', 'info');
         }
         
-        // Close dropdown on outside click
-        document.addEventListener('click', (e) => {
-            const dropdown = document.getElementById('adminDropdown');
-            const btn = document.querySelector('.admin-user-btn');
-            if (dropdown && btn && !btn.contains(e.target) && !dropdown.contains(e.target)) {
-                dropdown.classList.remove('show');
-            }
-        });
-    </script>
+    // Close dropdown on outside click
+    document.addEventListener('click', (e) => {
+        const dropdown = document.getElementById('adminDropdown');
+        const btn = document.querySelector('.admin-user-btn');
+        if (dropdown && btn && !btn.contains(e.target) && !dropdown.contains(e.target)) {
+            dropdown.classList.remove('show');
+        }
+    }); 
+</script>
+
+<!-- Fichier GPS Chauffeur -->
+<script src="navigation-chauffeur.js"></script>
+
 </body>
 </html>
