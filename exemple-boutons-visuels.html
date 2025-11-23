@@ -1,0 +1,255 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Exemple - Boutons d'Action Chauffeur</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <style>
+    body {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      min-height: 100vh;
+      padding: 20px;
+    }
+    
+    .ride-card {
+      transition: transform 0.2s;
+      margin-bottom: 1rem;
+    }
+    
+    .ride-card:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+    }
+    
+    .container {
+      max-width: 800px;
+    }
+    
+    .gap-2 {
+      gap: 0.5rem;
+    }
+    
+    .badge {
+      padding: 0.35em 0.65em;
+      font-size: 0.85em;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="text-center text-white mb-4">
+      <h2><i class="fas fa-taxi"></i> Exemple - Boutons d'Action</h2>
+      <p>Voici à quoi ressembleront tes cartes de course !</p>
+    </div>
+    
+    <div id="examples">
+      <!-- Exemple 1: Course en attente -->
+      <div class="ride-card mb-3">
+        <div class="card shadow-sm">
+          <div class="card-header bg-warning text-white">
+            <div class="d-flex justify-content-between align-items-center">
+              <h6 class="mb-0">
+                <i class="fas fa-taxi"></i> Course #abc123de
+              </h6>
+              <span class="badge bg-light text-dark">En attente</span>
+            </div>
+          </div>
+          <div class="card-body">
+            <div class="mb-2">
+              <strong><i class="fas fa-user"></i> Client:</strong> Mamadou Diallo
+              <br><small class="text-muted"><i class="fas fa-phone"></i> +221 77 123 45 67</small>
+            </div>
+            
+            <div class="mb-2">
+              <strong><i class="fas fa-map-marker-alt text-success"></i> Départ:</strong>
+              <br><small>Saly, Mbour, Sénégal</small>
+            </div>
+            
+            <div class="mb-2">
+              <strong><i class="fas fa-map-marker-alt text-danger"></i> Arrivée:</strong>
+              <br><small>Aéroport Blaise Diagne (AIBD)</small>
+            </div>
+            
+            <div class="mb-2">
+              <strong><i class="fas fa-coins"></i> Prix:</strong> 
+              <span class="text-success fw-bold">15000 FCFA</span>
+            </div>
+            
+            <div class="mb-2">
+              <strong><i class="fas fa-clock"></i> Demandée le:</strong>
+              <br><small class="text-muted">23/11/2024 à 14:30</small>
+            </div>
+            
+            <!-- BOUTONS POUR COURSE EN ATTENTE -->
+            <div class="d-flex gap-2 mt-2">
+              <button class="btn btn-success btn-sm flex-fill" onclick="alert('Course acceptée !')">
+                <i class="fas fa-check"></i> Accepter
+              </button>
+              <button class="btn btn-danger btn-sm flex-fill" onclick="alert('Course refusée !')">
+                <i class="fas fa-times"></i> Refuser
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+      
+      <!-- Exemple 2: Course en cours -->
+      <div class="ride-card mb-3">
+        <div class="card shadow-sm">
+          <div class="card-header bg-primary text-white">
+            <div class="d-flex justify-content-between align-items-center">
+              <h6 class="mb-0">
+                <i class="fas fa-taxi"></i> Course #def456gh
+              </h6>
+              <span class="badge bg-light text-dark">En cours</span>
+            </div>
+          </div>
+          <div class="card-body">
+            <div class="mb-2">
+              <strong><i class="fas fa-user"></i> Client:</strong> Aïssatou Sow
+              <br><small class="text-muted"><i class="fas fa-phone"></i> +221 76 987 65 43</small>
+            </div>
+            
+            <div class="mb-2">
+              <strong><i class="fas fa-map-marker-alt text-success"></i> Départ:</strong>
+              <br><small>Rond-Point Liberté 6, Dakar</small>
+            </div>
+            
+            <div class="mb-2">
+              <strong><i class="fas fa-map-marker-alt text-danger"></i> Arrivée:</strong>
+              <br><small>Sea Plaza, Dakar</small>
+            </div>
+            
+            <div class="mb-2">
+              <strong><i class="fas fa-coins"></i> Prix:</strong> 
+              <span class="text-success fw-bold">3500 FCFA</span>
+            </div>
+            
+            <div class="mb-2">
+              <strong><i class="fas fa-clock"></i> Demandée le:</strong>
+              <br><small class="text-muted">23/11/2024 à 15:15</small>
+            </div>
+            
+            <!-- BOUTON POUR TERMINER LA COURSE -->
+            <button class="btn btn-success btn-sm w-100 mt-2" onclick="alert('Course terminée !')">
+              <i class="fas fa-check-circle"></i> Terminer la course
+            </button>
+          </div>
+        </div>
+      </div>
+      
+      <!-- Exemple 3: Course terminée NON PAYÉE -->
+      <div class="ride-card mb-3">
+        <div class="card shadow-sm">
+          <div class="card-header bg-success text-white">
+            <div class="d-flex justify-content-between align-items-center">
+              <h6 class="mb-0">
+                <i class="fas fa-taxi"></i> Course #ghi789jk
+              </h6>
+              <span class="badge bg-light text-dark">Terminée</span>
+            </div>
+          </div>
+          <div class="card-body">
+            <div class="mb-2">
+              <strong><i class="fas fa-user"></i> Client:</strong> Ousmane Fall
+              <br><small class="text-muted"><i class="fas fa-phone"></i> +221 70 555 44 33</small>
+            </div>
+            
+            <div class="mb-2">
+              <strong><i class="fas fa-map-marker-alt text-success"></i> Départ:</strong>
+              <br><small>Marché Kermel, Dakar</small>
+            </div>
+            
+            <div class="mb-2">
+              <strong><i class="fas fa-map-marker-alt text-danger"></i> Arrivée:</strong>
+              <br><small>Monument de la Renaissance, Dakar</small>
+            </div>
+            
+            <div class="mb-2">
+              <strong><i class="fas fa-coins"></i> Prix:</strong> 
+              <span class="text-success fw-bold">5000 FCFA</span>
+              <span class="badge bg-danger ms-2">⏳ Non payé</span>
+            </div>
+            
+            <div class="mb-2">
+              <strong><i class="fas fa-clock"></i> Demandée le:</strong>
+              <br><small class="text-muted">23/11/2024 à 10:00</small>
+            </div>
+            
+            <div class="mb-2">
+              <strong><i class="fas fa-flag-checkered"></i> Terminée le:</strong>
+              <br><small class="text-muted">23/11/2024 à 10:45</small>
+            </div>
+            
+            <!-- BOUTON POUR MARQUER COMME PAYÉ -->
+            <button class="btn btn-warning btn-sm w-100 mt-2" onclick="alert('Paiement enregistré !')">
+              <i class="fas fa-money-bill-wave"></i> Marquer comme payé
+            </button>
+          </div>
+        </div>
+      </div>
+      
+      <!-- Exemple 4: Course terminée PAYÉE -->
+      <div class="ride-card mb-3">
+        <div class="card shadow-sm">
+          <div class="card-header bg-success text-white">
+            <div class="d-flex justify-content-between align-items-center">
+              <h6 class="mb-0">
+                <i class="fas fa-taxi"></i> Course #lmn012op
+              </h6>
+              <span class="badge bg-light text-dark">Terminée</span>
+            </div>
+          </div>
+          <div class="card-body">
+            <div class="mb-2">
+              <strong><i class="fas fa-user"></i> Client:</strong> Fatou Ndiaye
+              <br><small class="text-muted"><i class="fas fa-phone"></i> +221 77 111 22 33</small>
+            </div>
+            
+            <div class="mb-2">
+              <strong><i class="fas fa-map-marker-alt text-success"></i> Départ:</strong>
+              <br><small>Plateau, Dakar</small>
+            </div>
+            
+            <div class="mb-2">
+              <strong><i class="fas fa-map-marker-alt text-danger"></i> Arrivée:</strong>
+              <br><small>Almadies, Dakar</small>
+            </div>
+            
+            <div class="mb-2">
+              <strong><i class="fas fa-coins"></i> Prix:</strong> 
+              <span class="text-success fw-bold">8000 FCFA</span>
+              <span class="badge bg-success ms-2">💰 Payé</span>
+            </div>
+            
+            <div class="mb-2">
+              <strong><i class="fas fa-clock"></i> Demandée le:</strong>
+              <br><small class="text-muted">23/11/2024 à 08:00</small>
+            </div>
+            
+            <div class="mb-2">
+              <strong><i class="fas fa-flag-checkered"></i> Terminée le:</strong>
+              <br><small class="text-muted">23/11/2024 à 08:30</small>
+            </div>
+            
+            <!-- PAS DE BOUTON - COURSE COMPLÈTE -->
+            <div class="alert alert-success mt-2 mb-0 text-center">
+              <i class="fas fa-check-double"></i> Course complète - Paiement reçu
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    
+    <div class="text-center text-white mt-4">
+      <p class="mb-0">
+        <i class="fas fa-info-circle"></i> Ouvre ce fichier dans un navigateur pour voir les boutons en action !
+      </p>
+    </div>
+  </div>
+  
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>
