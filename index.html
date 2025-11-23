@@ -2,16 +2,14 @@
 <html lang="fr">
 <head>
   <meta charset="utf-8">
-  <title>DIGIY DRIVER — Panneau Chauffeur</title>
+  <title>DIGIY DRIVER — Panel chauffeur</title>
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no">
-  <meta name="apple-mobile-web-app-capable" content="yes">
-  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <style>
     :root{
       --bg:#050814;
-      --bg-alt:#0b1120;
+      --bg-soft:#0b1220;
       --card:#020617;
-      --card-soft:#020617;
+      --card-alt:#020617;
       --accent:#facc15;
       --accent-soft:#f97316;
       --accent-soft2:#22c55e;
@@ -22,556 +20,463 @@
       --good:#22c55e;
       --info:#38bdf8;
     }
-    *{box-sizing:border-box;margin:0;padding:0;font-family:system-ui,-apple-system,Segoe UI,sans-serif;}
+    *{
+      box-sizing:border-box;
+      margin:0;
+      padding:0;
+      font-family:system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
+    }
     body{
-      min-height:100vh;
-      background:radial-gradient(circle at top, #111827 0, #020617 55%, #000 100%);
+      background:radial-gradient(circle at top,#0b1220 0,#020617 40%,#020617 100%);
       color:var(--ink);
+      min-height:100vh;
       display:flex;
       justify-content:center;
+      padding:16px;
     }
     .app{
       width:100%;
       max-width:960px;
-      padding:12px;
+      border-radius:24px;
+      background:radial-gradient(circle at top,#020617 0,#020617 45%,#020617 100%);
+      border:1px solid rgba(148,163,184,0.2);
+      box-shadow:0 18px 50px rgba(15,23,42,0.9);
+      overflow:hidden;
       display:flex;
       flex-direction:column;
-      gap:12px;
+      max-height:100vh;
     }
     .header{
-      background:linear-gradient(135deg,#020617,#111827);
-      border:1px solid rgba(250,204,21,.4);
-      border-radius:18px;
-      padding:14px 16px;
+      padding:16px 20px 12px;
+      border-bottom:1px solid rgba(148,163,184,0.25);
       display:flex;
       justify-content:space-between;
       align-items:center;
-      box-shadow:0 20px 40px rgba(0,0,0,.55);
+      background:linear-gradient(135deg,rgba(15,23,42,0.95),rgba(30,64,175,0.4));
+      backdrop-filter:blur(14px);
     }
-    .brand{
+    .logo-area{
       display:flex;
       align-items:center;
       gap:10px;
     }
-    .brand-logo{
-      width:40px;height:40px;
+    .logo-badge{
+      width:38px;
+      height:38px;
       border-radius:14px;
-      background:#facc15;
-      display:flex;align-items:center;justify-content:center;
-      font-size:22px;font-weight:900;
-      color:#020617;
-      box-shadow:0 0 18px rgba(250,204,21,.8);
-    }
-    .brand-text-title{font-size:16px;font-weight:800;letter-spacing:.06em;}
-    .brand-text-sub{font-size:11px;color:var(--muted);}
-    .driver-box{
-      text-align:right;
-      font-size:11px;
-    }
-    .driver-name{font-weight:700;font-size:13px;}
-    .driver-id{color:var(--muted);}
-    .badge-online{
-      margin-top:4px;
-      display:inline-flex;
-      align-items:center;
-      gap:6px;
-      padding:3px 9px;
-      border-radius:999px;
-      background:rgba(34,197,94,.12);
-      color:var(--good);
-      font-size:10px;
-    }
-    .badge-dot{
-      width:7px;height:7px;border-radius:50%;
-      background:var(--good);
-      box-shadow:0 0 10px rgba(34,197,94,.7);
-    }
-
-    .grid{
-      display:grid;
-      grid-template-columns:1.3fr 1fr;
-      gap:12px;
-    }
-    @media(max-width:768px){
-      .grid{grid-template-columns:1fr;}
-    }
-
-    .card{
-      background:radial-gradient(circle at top left,#111827 0,#020617 55%);
-      border-radius:18px;
-      padding:14px 14px 12px;
-      border:1px solid rgba(148,163,184,.5);
-      box-shadow:0 18px 30px rgba(0,0,0,.6);
-      position:relative;
-      overflow:hidden;
-    }
-    .card::before{
-      content:"";
-      position:absolute;
-      inset:-40%;
-      background:
-        radial-gradient(circle at 0 0, rgba(234,179,8,.12), transparent 55%),
-        radial-gradient(circle at 100% 0, rgba(56,189,248,.12), transparent 55%);
-      opacity:.7;
-      pointer-events:none;
-    }
-    .card-inner{position:relative;z-index:1;}
-
-    .card-title-row{
+      background:radial-gradient(circle at 30% 20%,#facc15,#f97316);
       display:flex;
-      justify-content:space-between;
       align-items:center;
-      margin-bottom:10px;
+      justify-content:center;
+      color:#020617;
+      font-weight:900;
+      font-size:18px;
+      box-shadow:0 8px 20px rgba(250,204,21,0.45);
     }
-    .card-title{
-      font-size:14px;
-      font-weight:700;
-      letter-spacing:.08em;
+    .logo-text{
+      display:flex;
+      flex-direction:column;
+      gap:2px;
+    }
+    .logo-title{
+      font-size:17px;
+      font-weight:750;
+      letter-spacing:0.06em;
       text-transform:uppercase;
-      color:#e5e7eb;
     }
-    .card-pill{
-      font-size:10px;
-      padding:3px 9px;
-      border-radius:999px;
-      border:1px solid rgba(148,163,184,.6);
+    .logo-sub{
+      font-size:11px;
       color:var(--muted);
       display:flex;
+      align-items:center;
+      gap:6px;
+    }
+    .pill{
+      border-radius:999px;
+      padding:4px 10px;
+      font-size:10px;
+      border:1px solid rgba(148,163,184,0.4);
+      display:inline-flex;
       align-items:center;
       gap:4px;
     }
-    .card-pill span.dot{
-      width:6px;height:6px;border-radius:50%;background:#22c55e;
+    .pill span.dot{
+      width:6px;height:6px;border-radius:999px;background:var(--accent);
     }
-
-    /* COURSE ACTIVE EN HAUT */
-    .current-ride{
-      border-radius:14px;
-      padding:10px 10px 10px;
-      background:linear-gradient(120deg,rgba(34,197,94,.15),rgba(15,23,42,.8));
-      border:1px solid rgba(34,197,94,.5);
-      margin-bottom:10px;
-      font-size:13px;
-      display:none;
-      flex-direction:column;
-      gap:8px;
-    }
-    .current-ride-header{
-      display:flex;justify-content:space-between;align-items:center;
-      font-size:12px;
-    }
-    .current-ride-status{
-      display:inline-flex;align-items:center;gap:6px;
-      padding:3px 8px;border-radius:999px;
-      background:rgba(34,197,94,.18);color:var(--good);
-      font-size:10px;font-weight:600;
-    }
-    .current-ride-status span.dot{
-      width:7px;height:7px;border-radius:50%;background:var(--good);
-      animation:pulse 1.4s infinite;
-    }
-    .current-ride-route{
-      font-size:12px;
-    }
-    .current-ride-tags{
+    .header-right{
       display:flex;
-      flex-wrap:wrap;
-      gap:6px;
-      margin-top:4px;
+      align-items:center;
+      gap:10px;
     }
-    .tag{
-      font-size:11px;
-      padding:3px 7px;
+    .status-chip{
+      display:flex;
+      align-items:center;
+      gap:6px;
+      padding:4px 10px;
       border-radius:999px;
-      background:rgba(15,23,42,.9);
-      border:1px solid rgba(148,163,184,.5);
-      color:var(--muted);
-      display:flex;
-      align-items:center;
-      gap:5px;
+      background:rgba(15,23,42,0.7);
+      border:1px solid rgba(148,163,184,0.4);
+      font-size:11px;
     }
-    .tag strong{color:#e5e7eb;font-weight:600;}
-
-    .phase-steps{
-      display:flex;
-      justify-content:space-between;
-      margin-top:6px;
-      margin-bottom:4px;
-      font-size:10px;
-      color:var(--muted);
+    .status-dot{
+      width:9px;height:9px;border-radius:999px;background:var(--danger);
+      box-shadow:0 0 0 0 rgba(239,68,68,0.5);
+      animation:pulse 1.5s infinite;
     }
-    .phase-step{
-      flex:1;
-      display:flex;
-      flex-direction:column;
-      align-items:center;
-      gap:3px;
-    }
-    .phase-dot{
-      width:12px;height:12px;border-radius:999px;
-      border:2px solid rgba(148,163,184,.6);
-      background:transparent;
-    }
-    .phase-step.active .phase-dot{
-      border-color:var(--good);
+    .status-dot.on{
       background:var(--good);
-      box-shadow:0 0 10px rgba(34,197,94,.7);
+      box-shadow:0 0 0 0 rgba(34,197,94,0.5);
     }
-    .phase-step.active span{color:#e5e7eb;}
-
-    .current-ride-actions{
+    @keyframes pulse{
+      0%{box-shadow:0 0 0 0 rgba(34,197,94,0.45);}
+      70%{box-shadow:0 0 0 10px rgba(34,197,94,0);}
+      100%{box-shadow:0 0 0 0 rgba(34,197,94,0);}
+    }
+    .btn-main{
+      background:linear-gradient(135deg,#facc15,#f97316);
+      color:#020617;
+      border:none;
+      border-radius:999px;
+      padding:8px 16px;
+      font-size:12px;
+      font-weight:700;
       display:flex;
-      flex-wrap:wrap;
+      align-items:center;
       gap:6px;
-      margin-top:4px;
+      cursor:pointer;
+      box-shadow:0 10px 25px rgba(250,204,21,0.35);
+    }
+    .btn-main.off{
+      background:transparent;
+      color:var(--muted);
+      border:1px solid rgba(148,163,184,0.7);
+      box-shadow:none;
     }
 
-    /* LISTE DES DEMANDES */
-    .rides-list{
-      max-height:380px;
-      overflow:auto;
+    .body{
+      display:flex;
+      flex:1;
+      overflow:hidden;
+    }
+    .col{
+      flex:1;
+      padding:14px 16px 18px;
       display:flex;
       flex-direction:column;
-      gap:8px;
-      padding-right:4px;
-      margin-top:6px;
+      gap:10px;
+      overflow-y:auto;
     }
-    .rides-empty{
+    .col + .col{
+      border-left:1px solid rgba(30,64,175,0.35);
+    }
+    .section-title{
+      font-size:13px;
+      text-transform:uppercase;
+      letter-spacing:0.12em;
+      color:var(--muted);
+      margin-bottom:4px;
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+    }
+    .section-title span.badge{
+      font-size:11px;
+      padding:3px 9px;
+      border-radius:999px;
+      border:1px solid rgba(148,163,184,0.6);
+      color:var(--muted);
+    }
+    .card{
+      background:radial-gradient(circle at top left,#020617,#020617 55%,#020617);
+      border-radius:16px;
+      border:1px solid rgba(30,64,175,0.45);
+      padding:12px 12px 10px;
+      box-shadow:0 12px 28px rgba(15,23,42,0.85);
+    }
+    .empty{
       font-size:12px;
       color:var(--muted);
-      padding:14px 6px 4px;
+      padding:10px 4px 2px;
     }
 
     .ride-card{
       border-radius:14px;
-      background:rgba(15,23,42,.98);
-      border:1px solid rgba(148,163,184,.6);
-      padding:9px 10px 10px;
-      font-size:12px;
-      display:flex;
-      flex-direction:column;
-      gap:6px;
-      position:relative;
+      background:radial-gradient(circle at top,#020617,#020617 60%,#020617);
+      border:1px solid rgba(55,65,81,0.9);
+      padding:10px 10px 8px;
+      margin-bottom:8px;
     }
     .ride-header{
-      display:flex;justify-content:space-between;align-items:center;
-    }
-    .ride-id{
-      font-size:11px;color:var(--muted);
-    }
-    .ride-status-label{
-      font-size:10px;
-      color:var(--muted);
-    }
-    .ride-badge{
-      font-size:10px;
-      padding:2px 6px;
-      border-radius:999px;
-      background:rgba(250,204,21,.1);
-      color:var(--accent);
-      border:1px solid rgba(250,204,21,.6);
-    }
-    .ride-route{
-      margin-top:4px;
       display:flex;
-      flex-direction:column;
-      gap:3px;
+      justify-content:space-between;
+      align-items:flex-start;
+      margin-bottom:6px;
+    }
+    .ride-tag{
+      font-size:10px;
+      padding:2px 8px;
+      border-radius:999px;
+      background:rgba(15,23,42,0.9);
+      border:1px solid rgba(148,163,184,0.5);
+      text-transform:uppercase;
+      letter-spacing:0.08em;
+    }
+    .ride-price{
+      font-size:14px;
+      font-weight:700;
+      color:var(--accent);
+    }
+    .ride-meta{
+      font-size:11px;
+      color:var(--muted);
+      display:flex;
+      gap:10px;
+      margin-bottom:6px;
     }
     .ride-line{
       display:flex;
-      gap:6px;
+      gap:8px;
+      margin-bottom:4px;
+      font-size:12px;
     }
-    .ride-dot{
-      width:8px;height:8px;border-radius:50%;
-    }
-    .ride-dot.pick{background:#22c55e;}
-    .ride-dot.drop{background:#f97316;}
-    .ride-text-main{font-size:12px;}
-    .ride-text-label{font-size:10px;color:var(--muted);}
-    .ride-meta{
-      display:flex;justify-content:space-between;align-items:center;
-      margin-top:4px;
-    }
-    .ride-meta-left{
-      display:flex;gap:6px;flex-wrap:wrap;
-    }
-    .chip{
-      font-size:10px;
-      padding:2px 7px;
+    .ride-line span.label{
+      min-width:18px;
+      text-align:center;
       border-radius:999px;
-      background:rgba(15,23,42,.9);
-      border:1px solid rgba(55,65,81,.9);
-      display:flex;align-items:center;gap:4px;color:var(--muted);
+      font-size:10px;
+      padding:1px 0;
+      margin-top:1px;
     }
-    .chip strong{color:#e5e7eb;font-weight:600;}
+    .ride-line span.label.a{
+      background:rgba(34,197,94,0.2);
+      color:var(--good);
+    }
+    .ride-line span.label.b{
+      background:rgba(250,204,21,0.16);
+      color:var(--accent);
+    }
 
     .ride-actions{
-      margin-top:6px;
       display:flex;
-      flex-wrap:wrap;
-      gap:6px;
+      gap:8px;
+      margin-top:8px;
     }
-
     .btn{
-      border:none;
+      flex:1;
       border-radius:999px;
-      padding:6px 10px;
+      border:1px solid rgba(148,163,184,0.7);
+      background:rgba(15,23,42,0.7);
+      color:var(--ink);
       font-size:11px;
-      font-weight:600;
+      padding:7px 8px;
       display:flex;
       align-items:center;
       justify-content:center;
       gap:6px;
       cursor:pointer;
-      transition:transform .1s, box-shadow .1s, background .15s;
-      white-space:nowrap;
     }
-    .btn:active{transform:scale(.96);}
-    .btn-main{
-      flex:1;
+    .btn.primary{
+      border:none;
       background:linear-gradient(135deg,#22c55e,#16a34a);
-      color:#022c22;
-      box-shadow:0 0 14px rgba(34,197,94,.6);
+      color:#02120a;
+      font-weight:650;
     }
-    .btn-main[disabled]{
-      opacity:.5;
-      box-shadow:none;
-      cursor:default;
+    .btn.danger{
+      border-color:rgba(248,113,113,0.9);
+      color:#fecaca;
     }
-    .btn-ghost{
-      background:rgba(15,23,42,1);
-      border:1px solid rgba(148,163,184,.7);
-      color:var(--muted);
-    }
-    .btn-danger{
-      background:rgba(127,29,29,.9);
-      border:1px solid rgba(248,113,113,.8);
-      color:#fee2e2;
-    }
-    .btn-maps{
-      background:rgba(37,99,235,.15);
-      border:1px solid rgba(59,130,246,.8);
-      color:#bfdbfe;
-    }
-
-    .small{
+    .btn.small{
+      flex:0;
+      padding:5px 9px;
       font-size:10px;
-      color:var(--muted);
     }
-
-    .side-info{
+    .steps{
       display:flex;
-      flex-direction:column;
-      gap:10px;
-    }
-    .info-block{
-      background:rgba(15,23,42,.96);
-      border-radius:18px;
-      border:1px solid rgba(148,163,184,.6);
-      padding:10px 11px 9px;
-      font-size:12px;
-    }
-    .info-title{
-      font-size:12px;
-      font-weight:700;
-      margin-bottom:4px;
-    }
-    .info-row{
-      display:flex;justify-content:space-between;align-items:center;
-      font-size:11px;color:var(--muted);
-    }
-    .info-row strong{color:#e5e7eb;}
-    .stat{
-      margin-top:4px;
-      display:grid;
-      grid-template-columns:repeat(2,minmax(0,1fr));
-      gap:4px;
-    }
-    .stat-pill{
-      font-size:11px;
-      padding:3px 6px;
-      border-radius:999px;
-      background:rgba(15,23,42,.9);
-      border:1px solid rgba(55,65,81,.9);
-      display:flex;justify-content:space-between;
-    }
-    .footer{
+      gap:6px;
       margin-top:6px;
-      text-align:center;
+    }
+    .step{
+      flex:1;
+      border-radius:999px;
+      border:1px solid rgba(75,85,99,0.9);
+      font-size:10px;
+      padding:4px 6px;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      gap:4px;
+      color:var(--muted);
+      background:rgba(15,23,42,0.95);
+    }
+    .step.active{
+      border-color:rgba(250,204,21,0.8);
+      color:var(--accent);
+      background:radial-gradient(circle at top,rgba(250,204,21,0.16),rgba(15,23,42,0.96));
+    }
+    .step.done{
+      border-color:rgba(34,197,94,0.9);
+      color:var(--good);
+      background:radial-gradient(circle at top,rgba(34,197,94,0.18),rgba(15,23,42,0.96));
+    }
+
+    .stats-grid{
+      display:grid;
+      grid-template-columns:repeat(3,minmax(0,1fr));
+      gap:8px;
+      margin-top:4px;
+    }
+    .stat-card{
+      border-radius:12px;
+      border:1px solid rgba(55,65,81,0.9);
+      background:radial-gradient(circle at top,#020617,#020617 60%,#020617);
+      padding:8px 9px 7px;
+      font-size:11px;
+    }
+    .stat-label{
+      color:var(--muted);
+      font-size:10px;
+      margin-bottom:2px;
+    }
+    .stat-value{
+      font-weight:700;
+      font-size:14px;
+    }
+    .stat-chip{
       font-size:10px;
       color:var(--muted);
     }
-    .footer span{color:var(--accent);}
-    @keyframes pulse{
-      0%,100%{transform:scale(1);opacity:1;}
-      50%{transform:scale(1.25);opacity:.4;}
+
+    .footer{
+      padding:8px 12px 10px;
+      border-top:1px solid rgba(30,64,175,0.4);
+      font-size:11px;
+      color:var(--muted);
+      text-align:center;
+      background:radial-gradient(circle at top,#020617,#020617);
+    }
+    .footer span.brand{
+      color:var(--accent);
+      font-weight:650;
+    }
+    .footer span.zero{
+      color:var(--accent-soft2);
+      font-weight:600;
+    }
+
+    @media(max-width:768px){
+      .body{
+        flex-direction:column;
+      }
+      .col + .col{
+        border-left:none;
+        border-top:1px solid rgba(30,64,175,0.35);
+      }
     }
   </style>
 </head>
 <body>
+
 <div class="app">
-  <!-- HEADER -->
-  <header class="header">
-    <div class="brand">
-      <div class="brand-logo">D</div>
-      <div>
-        <div class="brand-text-title">DIGIY DRIVER</div>
-        <div class="brand-text-sub">Panneau Chauffeur — 0% commission</div>
+  <div class="header">
+    <div class="logo-area">
+      <div class="logo-badge">D</div>
+      <div class="logo-text">
+        <div class="logo-title">DIGIY DRIVER</div>
+        <div class="logo-sub">
+          Senegal • Éco Dakar
+          <span class="pill"><span class="dot"></span> 0% commission</span>
+        </div>
       </div>
     </div>
-    <div class="driver-box">
-      <div class="driver-name" id="driverName">Mamadou D.</div>
-      <div class="driver-id" id="driverIdLabel">ID: DRIVER-SN-001</div>
-      <div class="badge-online">
-        <span class="badge-dot"></span>
-        <span id="onlineLabel">EN LIGNE</span>
+    <div class="header-right">
+      <div class="status-chip">
+        <span class="status-dot" id="dot-status"></span>
+        <span id="txt-status">OFFLINE</span>
+      </div>
+      <button class="btn-main off" id="btn-toggle">
+        ⚪ Hors-ligne
+      </button>
+    </div>
+  </div>
+
+  <div class="body">
+    <!-- COL 1 : COURSES À ACCEPTER -->
+    <div class="col">
+      <div class="section-title">
+        <span>Courses à accepter</span>
+        <span class="badge">
+          En attente / suivies : <span id="count-pending">0</span>
+        </span>
+      </div>
+      <div class="card" id="pending-list">
+        <div class="empty">
+          Aucune course en attente.  
+          <br>➡ Mets-toi <strong>Disponible</strong> pour recevoir les demandes.
+        </div>
       </div>
     </div>
-  </header>
 
-  <div class="grid">
-    <!-- COLONNE GAUCHE : COURSES -->
-    <section class="card">
-      <div class="card-inner">
-        <div class="card-title-row">
-          <div>
-            <div class="card-title">Courses à accepter</div>
-            <div class="small" id="ridesCountLabel">En attente / suivies : 0</div>
-          </div>
-          <div class="card-pill">
-            <span class="dot"></span>
-            Temps réel Firebase
-          </div>
-        </div>
-
-        <!-- COURSE ACTIVE -->
-        <div id="currentRideBox" class="current-ride">
-          <div class="current-ride-header">
-            <div>
-              <div class="small">Course active</div>
-              <div id="currentRideId" style="font-size:11px;color:var(--muted);"></div>
-            </div>
-            <div class="current-ride-status">
-              <span class="dot"></span>
-              <span id="currentRideStatusLabel">EN ROUTE VERS LE CLIENT</span>
-            </div>
-          </div>
-          <div class="current-ride-route" id="currentRideRoute">—</div>
-          <div class="current-ride-tags">
-            <div class="tag">⏱️ <span>Durée estimée : <strong id="currentRideEta">— min</strong></span></div>
-            <div class="tag">💰 <span>Prix : <strong id="currentRidePrice">— FCFA</strong></span></div>
-          </div>
-
-          <div class="phase-steps">
-            <div class="phase-step" data-phase="accepted">
-              <div class="phase-dot"></div>
-              <span>Course acceptée</span>
-            </div>
-            <div class="phase-step" data-phase="on_the_way">
-              <div class="phase-dot"></div>
-              <span>En route vers client</span>
-            </div>
-            <div class="phase-step" data-phase="client_onboard">
-              <div class="phase-dot"></div>
-              <span>Client à bord</span>
-            </div>
-            <div class="phase-step" data-phase="completed">
-              <div class="phase-dot"></div>
-              <span>Course terminée</span>
-            </div>
-          </div>
-
-          <div class="current-ride-actions">
-            <button class="btn btn-maps" id="btnMapsPickup" onclick="goToPickup()">
-              📍 Maps → Départ
-            </button>
-            <button class="btn btn-maps" id="btnMapsDropoff" onclick="goToDropoff()">
-              🏁 Maps → Destination
-            </button>
-            <button class="btn btn-main" id="btnPhaseOnTheWay" onclick="setPhase('on_the_way')">
-              🚗 Je pars vers le client
-            </button>
-            <button class="btn btn-main" id="btnPhaseClientOnboard" onclick="setPhase('client_onboard')">
-              👤 Client à bord
-            </button>
-            <button class="btn btn-danger" id="btnPhaseCompleted" onclick="setPhase('completed')">
-              ✅ Terminer la course
-            </button>
-          </div>
-        </div>
-
-        <!-- LISTE COURSES -->
-        <div id="ridesList" class="rides-list">
-          <div class="rides-empty">
-            Aucune course en attente. Quand un client commande, la course apparaît ici.
-          </div>
-        </div>
+    <!-- COL 2 : COURSE EN COURS + STATS -->
+    <div class="col">
+      <div class="section-title">
+        <span>Course en cours</span>
+        <span class="badge" id="badge-ride">Libre</span>
       </div>
-    </section>
-
-    <!-- COLONNE DROITE : INFO / CONTROLES -->
-    <aside class="side-info">
-      <div class="info-block">
-        <div class="info-title">Statut chauffeur</div>
-        <div class="info-row">
-          <span>Profil</span>
-          <strong id="driverProfileLabel">Éco • Dakar</strong>
-        </div>
-        <div class="info-row">
-          <span>Commission</span>
-          <strong style="color:var(--good);">0% DIGIY • 100% pour toi</strong>
-        </div>
-        <div class="stat">
-          <div class="stat-pill">
-            <span>Courses aujourd'hui</span>
-            <span id="statToday">0</span>
-          </div>
-          <div class="stat-pill">
-            <span>Montant jour</span>
-            <span id="statAmount">0 F</span>
-          </div>
+      <div class="card" id="current-ride">
+        <div class="empty">
+          Tu es libre.  
+          <br>Quand tu acceptes une course, elle apparaît ici.
         </div>
       </div>
 
-      <div class="info-block">
-        <div class="info-title">Raccourcis</div>
-        <div class="stat">
-          <button class="btn btn-ghost" style="width:100%;" onclick="toggleAvailability()">
-            🟢 Basculer Disponible / Occupé
-          </button>
-          <button class="btn btn-ghost" style="width:100%;" onclick="panicSOS()">
-            🆘 SOS Rapide
-          </button>
-        </div>
-        <div class="small" style="margin-top:6px;">
-          1) <strong>Accepte la course</strong> • 2) <strong>Maps → Départ</strong> • 3) <strong>Client à bord</strong> • 4) <strong>Terminer</strong>.
+      <div class="section-title" style="margin-top:8px;">
+        <span>Statistiques jour</span>
+      </div>
+      <div class="card">
+        <div class="stats-grid">
+          <div class="stat-card">
+            <div class="stat-label">Courses aujourd'hui</div>
+            <div class="stat-value" id="stat-rides">0</div>
+            <div class="stat-chip">courses</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-label">Montant jour</div>
+            <div class="stat-value" id="stat-amount">0 F</div>
+            <div class="stat-chip">encaissé</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-label">Commission DIGIY</div>
+            <div class="stat-value" id="stat-commission">0 F</div>
+            <div class="stat-chip">0% • tout pour toi</div>
+          </div>
         </div>
       </div>
-    </aside>
+    </div>
   </div>
 
   <div class="footer">
-    DIGIY DRIVER Sénégal • <span>0% commission</span> • Paiement direct au pro
+    DIGIY DRIVER Sénégal • <span class="zero">0% commission</span> • <span class="brand">Paiement direct au pro</span>
   </div>
 </div>
 
 <!-- Firebase -->
 <script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-database-compat.js"></script>
-<script>
-  // 🔧 CONFIG CHAUFFEUR (à personnaliser)
-  const DRIVER_ID   = "DRIVER-SN-001";
-  const DRIVER_NAME = "Mamadou D.";
-  const DRIVER_PHONE= "+221770000000";
-  const DRIVER_VEHICLE = {
-    type: "Éco",
-    model: "Toyota Corolla",
-    color: "Blanc",
-    plate: "DK-1234-AB",
-    zone: "Dakar"
-  };
 
-  // 🔥 Firebase config (même projet que le client)
+<script>
+  // =========================
+  // CONFIG CHAUFFEUR
+  // =========================
+  const DRIVER_ID   = "MAMADOU_SN_001";
+  const DRIVER_NAME = "Mamadou D.";
+  const DRIVER_PHONE = "+221770000000";
+  const VEHICLE     = "Toyota Corolla";
+  const VEHICLE_COLOR = "Blanc";
+  const VEHICLE_PLATE = "DK-1234-AB";
+
+  // =========================
+  // FIREBASE
+  // =========================
   const firebaseConfig = {
     apiKey: "AIzaSyBqEQWoE2iC7_rp-u4riilNVHolcP2o0B0",
     authDomain: "digiylyfe-ecosystem.firebaseapp.com",
@@ -582,398 +487,432 @@
     appId: "1:1007962643384:web:20d26881e87f0dc37d0d4d"
   };
 
-  let db      = null;
-  let currentRideId = null;
-  let currentRideData = null;
+  firebase.initializeApp(firebaseConfig);
+  const db = firebase.database();
+
+  // =========================
+  // ÉTAT LOCAL
+  // =========================
+  const state = {
+    online: false,
+    currentRideId: null,
+    currentRideData: null,
+    pendingRides: {},
+    stats: {
+      ridesToday: 0,
+      amountToday: 0
+    }
+  };
+
+  const elDotStatus    = document.getElementById("dot-status");
+  const elTxtStatus    = document.getElementById("txt-status");
+  const elBtnToggle    = document.getElementById("btn-toggle");
+  const elPendingList  = document.getElementById("pending-list");
+  const elCountPending = document.getElementById("count-pending");
+  const elCurrentRide  = document.getElementById("current-ride");
+  const elBadgeRide    = document.getElementById("badge-ride");
+  const elStatRides    = document.getElementById("stat-rides");
+  const elStatAmount   = document.getElementById("stat-amount");
+  const elStatComm     = document.getElementById("stat-commission");
+
+  let ridesRef = null;
   let currentRideRef = null;
 
-  document.addEventListener("DOMContentLoaded", () => {
-    document.getElementById("driverName").textContent = DRIVER_NAME;
-    document.getElementById("driverIdLabel").textContent = "ID: " + DRIVER_ID;
-    document.getElementById("driverProfileLabel").textContent =
-      `${DRIVER_VEHICLE.type} • ${DRIVER_VEHICLE.zone}`;
-
-    firebase.initializeApp(firebaseConfig);
-    db = firebase.database();
-
-    listenForRides();
-    markDriverOnline();
-
-    // au départ, rien en cours
-    showCurrentRideBox(false);
-  });
-
-  function markDriverOnline() {
-    if (!db) return;
-    const ref = db.ref("drivers_online/" + DRIVER_ID);
-    ref.set({
-      id: DRIVER_ID,
+  // =========================
+  // INIT
+  // =========================
+  function init() {
+    // statut initial chauffeur
+    db.ref("drivers/" + DRIVER_ID).update({
       name: DRIVER_NAME,
       phone: DRIVER_PHONE,
-      vehicle: DRIVER_VEHICLE.model,
-      color: DRIVER_VEHICLE.color,
-      plate: DRIVER_VEHICLE.plate,
-      zone: DRIVER_VEHICLE.zone,
-      available: true,
+      vehicle: VEHICLE,
+      color: VEHICLE_COLOR,
+      plate: VEHICLE_PLATE,
+      status: "offline",
+      currentRideId: null,
       updatedAt: firebase.database.ServerValue.TIMESTAMP
     });
-    ref.onDisconnect().remove();
+
+    elBtnToggle.addEventListener("click", toggleOnline);
+    listenStats();
   }
 
-  // ===== LECTURE COURSES =====
-  function listenForRides() {
-    const ridesRef = db.ref("rides");
-    ridesRef.on("value", snap => {
-      const data = snap.val() || {};
-      renderRides(data);
-    });
-  }
+  // =========================
+  // TOGGLE DISPONIBLE / OCCUPÉ
+  // =========================
+  function toggleOnline() {
+    state.online = !state.online;
 
-  function renderRides(ridesObj) {
-    const list = document.getElementById("ridesList");
-    list.innerHTML = "";
-    let count = 0;
+    if (state.online) {
+      elDotStatus.classList.add("on");
+      elTxtStatus.textContent = "DISPONIBLE";
+      elBtnToggle.classList.remove("off");
+      elBtnToggle.innerHTML = "🟢 Disponible";
+      startListeningRides();
 
-    const entries = Object.entries(ridesObj);
-    entries.sort((a,b) => (b[1].timestamp||0) - (a[1].timestamp||0));
-
-    let myActiveRide = null;
-    let myActiveId = null;
-
-    entries.forEach(([id, ride]) => {
-      const isMine = ride.driverId === DRIVER_ID;
-
-      // garder la course active du chauffeur
-      if (isMine && ride.status && ride.status !== "completed" && ride.status !== "cancelled") {
-        myActiveRide = ride;
-        myActiveId = id;
-      }
-
-      // Montrer :
-      // - toutes les courses sans status (anciennes) ou status "searching"
-      // - les courses du chauffeur tant qu'elles ne sont pas terminées/annulées
-      const status = ride.status || "searching";
-      const showAsNew = (status === "searching" || !ride.status);
-      const showAsMine = isMine && status !== "completed" && status !== "cancelled";
-
-      if (showAsNew || showAsMine) {
-        count++;
-        list.appendChild(buildRideCard(id, ride, isMine));
-      }
-    });
-
-    if (count === 0) {
-      const empty = document.createElement("div");
-      empty.className = "rides-empty";
-      empty.textContent = "Aucune course en attente. Reste connecté, une demande peut tomber à tout moment.";
-      list.appendChild(empty);
-    }
-
-    document.getElementById("ridesCountLabel").textContent = "En attente / suivies : " + count;
-
-    // Gérer la course active affichée en haut
-    if (myActiveRide && myActiveId) {
-      currentRideId = myActiveId;
-      currentRideData = myActiveRide;
-      attachCurrentRideListener(myActiveId);
-      fillCurrentRide(myActiveId, myActiveRide);
-      showCurrentRideBox(true);
+      db.ref("drivers/" + DRIVER_ID).update({
+        status: "available",
+        updatedAt: firebase.database.ServerValue.TIMESTAMP
+      });
     } else {
-      currentRideId = null;
-      currentRideData = null;
-      if (currentRideRef) {
-        currentRideRef.off();
-        currentRideRef = null;
-      }
-      showCurrentRideBox(false);
+      elDotStatus.classList.remove("on");
+      elTxtStatus.textContent = "OFFLINE";
+      elBtnToggle.classList.add("off");
+      elBtnToggle.innerHTML = "⚪ Hors-ligne";
+      stopListeningRides();
+
+      db.ref("drivers/" + DRIVER_ID).update({
+        status: "offline",
+        updatedAt: firebase.database.ServerValue.TIMESTAMP
+      });
     }
   }
 
-  function buildRideCard(id, ride, isMine) {
-    const el = document.createElement("div");
-    el.className = "ride-card";
+  // =========================
+  // ÉCOUTE DES COURSES EN ATTENTE
+  // =========================
+  function startListeningRides() {
+    if (ridesRef) return;
+    ridesRef = db.ref("rides");
+    ridesRef.on("value", snapshot => {
+      const data = snapshot.val() || {};
+      state.pendingRides = {};
+      Object.keys(data).forEach(id => {
+        const r = data[id];
+        // On ne propose que les courses en "searching"
+        if (r.status === "searching") {
+          state.pendingRides[id] = r;
+        }
+        // Si cette course est déjà la nôtre, on l'affiche en cours
+        if (state.currentRideId === id) {
+          state.currentRideData = r;
+          renderCurrentRide();
+        }
+      });
+      renderPending();
+    });
+  }
 
-    const price = (ride.price || 0).toLocaleString("fr-FR") + " F CFA";
-    const distance = ride.distance ? ride.distance.toFixed(1) + " km" : "—";
-    const duration = ride.duration ? ride.duration + " min" : "—";
-    const veh = ride.vehicleType || "—";
-    const status = ride.status || "searching";
+  function stopListeningRides() {
+    if (ridesRef) {
+      ridesRef.off();
+      ridesRef = null;
+    }
+    state.pendingRides = {};
+    elPendingList.innerHTML = `
+      <div class="empty">
+        Aucune course en attente.<br>
+        Mets-toi <strong>Disponible</strong> pour recevoir des demandes.
+      </div>`;
+    elCountPending.textContent = "0";
+  }
 
-    let statusLabel = "Nouvelle demande";
-    if (status === "accepted") statusLabel = "Course acceptée (en attente de départ)";
-    if (status === "on_the_way") statusLabel = "En route vers le client";
-    if (status === "client_onboard") statusLabel = "Client à bord (vers destination)";
-    if (status === "completed") statusLabel = "Course terminée";
-    if (status === "cancelled") statusLabel = "Course annulée";
+  // =========================
+  // RENDER COURSES EN ATTENTE
+  // =========================
+  function renderPending() {
+    const ids = Object.keys(state.pendingRides);
+    elCountPending.textContent = ids.length.toString();
 
-    el.innerHTML = `
-      <div class="ride-header">
-        <div>
-          <div class="ride-id">#${id.slice(-6)}</div>
-          <div class="ride-status-label">${statusLabel}</div>
+    if (!ids.length) {
+      elPendingList.innerHTML = `
+        <div class="empty">
+          Aucune course en attente pour le moment.<br>
+          Reste connecté, une demande peut tomber à tout moment.
+        </div>`;
+      return;
+    }
+
+    elPendingList.innerHTML = "";
+    ids.forEach(id => {
+      const r = state.pendingRides[id];
+      const div = document.createElement("div");
+      div.className = "ride-card";
+      const price = (r.price || 0).toLocaleString() + " F";
+      const dist  = r.distance ? r.distance.toFixed(1) + " km" : "—";
+      const duree = r.duration ? r.duration + " min" : "—";
+      div.innerHTML = `
+        <div class="ride-header">
+          <span class="ride-tag">Nouvelle demande</span>
+          <span class="ride-price">${price}</span>
         </div>
-        <div class="ride-badge">${veh.toUpperCase()}</div>
-      </div>
-      <div class="ride-route">
+        <div class="ride-meta">
+          <span>Distance ~ ${dist}</span>
+          <span>Durée ~ ${duree}</span>
+          <span>${(r.vehicleType || "éco").toUpperCase()}</span>
+        </div>
         <div class="ride-line">
-          <div class="ride-dot pick"></div>
-          <div>
-            <div class="ride-text-main">${ride.pickupName || "Départ ?"}</div>
-            <div class="ride-text-label">Point de départ</div>
-          </div>
+          <span class="label a">A</span>
+          <span>${r.pickupName || "Point de départ"}</span>
         </div>
         <div class="ride-line">
-          <div class="ride-dot drop"></div>
-          <div>
-            <div class="ride-text-main">${ride.dropoffName || "Destination ?"}</div>
-            <div class="ride-text-label">Destination</div>
-          </div>
+          <span class="label b">B</span>
+          <span>${r.dropoffName || "Destination"}</span>
         </div>
-      </div>
-      <div class="ride-meta">
-        <div class="ride-meta-left">
-          <div class="chip">📏 <strong>${distance}</strong></div>
-          <div class="chip">⏱️ <strong>${duration}</strong></div>
+        <div class="ride-actions">
+          <button class="btn" onclick="refuserCourse('${id}')">✕ Refuser</button>
+          <button class="btn primary" onclick="accepterCourse('${id}')">✅ Accepter cette course</button>
         </div>
-        <div class="chip">💰 <strong>${price}</strong></div>
-      </div>
-    `;
-
-    const actions = document.createElement("div");
-    actions.className = "ride-actions";
-
-    // Bouton détails
-    const btnSee = document.createElement("button");
-    btnSee.className = "btn btn-ghost";
-    btnSee.textContent = "Détails";
-    btnSee.onclick = () => showRideDetails(id, ride);
-    actions.appendChild(btnSee);
-
-    // Boutons Maps (si coordonnées dispo)
-    if (ride.pickup && ride.pickup.lat && ride.pickup.lng) {
-      const btnMapsP = document.createElement("button");
-      btnMapsP.className = "btn btn-maps";
-      btnMapsP.textContent = "📍 Maps départ";
-      btnMapsP.onclick = () => openMapsTo(ride.pickup.lat, ride.pickup.lng);
-      actions.appendChild(btnMapsP);
-    }
-    if (ride.dropoff && ride.dropoff.lat && ride.dropoff.lng) {
-      const btnMapsD = document.createElement("button");
-      btnMapsD.className = "btn btn-maps";
-      btnMapsD.textContent = "🏁 Maps destination";
-      btnMapsD.onclick = () => openMapsTo(ride.dropoff.lat, ride.dropoff.lng);
-      actions.appendChild(btnMapsD);
-    }
-
-    const statusSimple = ride.status || "searching";
-    if (statusSimple === "searching") {
-      const btnAccept = document.createElement("button");
-      btnAccept.className = "btn btn-main";
-      btnAccept.innerHTML = "✅ Accepter la course";
-      btnAccept.onclick = () => acceptRide(id, ride, btnAccept);
-      actions.appendChild(btnAccept);
-    } else if (isMine && statusSimple !== "completed" && statusSimple !== "cancelled") {
-      const btnFocus = document.createElement("button");
-      btnFocus.className = "btn btn-main";
-      btnFocus.innerHTML = "👀 Voir comme course active";
-      btnFocus.onclick = () => {
-        currentRideId = id;
-        currentRideData = ride;
-        attachCurrentRideListener(id);
-        fillCurrentRide(id, ride);
-        showCurrentRideBox(true);
-      };
-      actions.appendChild(btnFocus);
-    }
-
-    el.appendChild(actions);
-    return el;
+      `;
+      elPendingList.appendChild(div);
+    });
   }
 
-  function showRideDetails(id, ride) {
-    alert(
-      `Course #${id.slice(-6)}\n\n` +
-      `Départ : ${ride.pickupName || "-"}\n` +
-      `Arrivée : ${ride.dropoffName || "-"}\n` +
-      `Distance : ${ride.distance ? ride.distance.toFixed(1) + " km" : "-"}\n` +
-      `Durée : ${ride.duration ? ride.duration + " min" : "-"}\n` +
-      `Prix : ${ride.price ? ride.price.toLocaleString("fr-FR") + " F CFA" : "-"}`
-    );
-  }
+  // =========================
+  // ACCEPTATION / REFUS
+  // =========================
+  async function accepterCourse(rideId) {
+    if (state.currentRideId) {
+      alert("Tu as déjà une course en cours. Termine-la avant d'en accepter une autre.");
+      return;
+    }
+    const rideRef = db.ref("rides/" + rideId);
 
-  // ===== ACCEPTER =====
-  function acceptRide(id, ride, btn) {
-    if (!confirm("Accepter cette course ?")) return;
-    btn.disabled = true;
-    btn.textContent = "Patiente...";
+    const snap = await rideRef.get();
+    const r = snap.val();
+    if (!r || r.status !== "searching") {
+      alert("Cette course n'est plus disponible.");
+      return;
+    }
 
-    const rideRef = db.ref("rides/" + id);
-    rideRef.transaction(current => {
-      if (!current) return current;
-      const status = current.status || "searching";
-      if (status !== "searching" && current.driverId && current.driverId !== DRIVER_ID) {
-        return current;
-      }
-      current.status = "accepted";
-      current.driverId = DRIVER_ID;
-      current.driver = {
+    // On passe en 'accepted' et on assigne le chauffeur
+    await rideRef.update({
+      status: "accepted",
+      driverId: DRIVER_ID,
+      driver: {
         id: DRIVER_ID,
         name: DRIVER_NAME,
         phone: DRIVER_PHONE,
-        vehicle: DRIVER_VEHICLE.model,
-        color: DRIVER_VEHICLE.color,
-        plate: DRIVER_VEHICLE.plate,
-        zone: DRIVER_VEHICLE.zone
-      };
-      current.acceptedAt = firebase.database.ServerValue.TIMESTAMP;
-      return current;
-    }, (error, committed, snapshot) => {
-      btn.disabled = false;
-      btn.textContent = "✅ Accepter la course";
-      if (error) {
-        alert("Erreur Firebase. Réessaie.");
-        return;
-      }
-      if (!committed) {
-        alert("Course déjà prise par un autre chauffeur.");
-        return;
-      }
+        vehicle: VEHICLE,
+        color: VEHICLE_COLOR,
+        plate: VEHICLE_PLATE
+      },
+      acceptedAt: firebase.database.ServerValue.TIMESTAMP
+    });
 
-      const newRide = snapshot.val();
-      currentRideId = id;
-      currentRideData = newRide;
-      attachCurrentRideListener(id);
-      fillCurrentRide(id, newRide);
-      showCurrentRideBox(true);
+    // On marque le chauffeur occupé
+    await db.ref("drivers/" + DRIVER_ID).update({
+      status: "busy",
+      currentRideId: rideId,
+      updatedAt: firebase.database.ServerValue.TIMESTAMP
+    });
+
+    state.currentRideId   = rideId;
+    state.currentRideData = r;
+    elBadgeRide.textContent = "Course acceptée";
+    listenCurrentRide(rideId);
+    renderCurrentRide();
+  }
+
+  function refuserCourse(rideId) {
+    // On peut simplement la laisser en "searching" (un autre prendra),
+    // ou marquer un champ "refusedBy". Pour l'instant on ne touche pas au statut.
+    alert("Course ignorée. Elle sera proposée à d'autres chauffeurs.");
+  }
+
+  // =========================
+  // SUIVI COURSE EN COURS
+  // =========================
+  function listenCurrentRide(rideId) {
+    if (currentRideRef) currentRideRef.off();
+    currentRideRef = db.ref("rides/" + rideId);
+    currentRideRef.on("value", snap => {
+      const r = snap.val();
+      if (!r) return;
+      state.currentRideData = r;
+      renderCurrentRide();
     });
   }
 
-  function attachCurrentRideListener(id) {
+  function renderCurrentRide() {
+    const r = state.currentRideData;
+    if (!r || !state.currentRideId) {
+      elCurrentRide.innerHTML = `
+        <div class="empty">
+          Tu es libre.  
+          <br>Quand tu acceptes une course, elle apparaît ici.
+        </div>`;
+      elBadgeRide.textContent = "Libre";
+      return;
+    }
+
+    const price = (r.price || 0).toLocaleString() + " F";
+    const dist  = r.distance ? r.distance.toFixed(1) + " km" : "—";
+    const duree = r.duration ? r.duration + " min" : "—";
+    const statut = r.status || "accepted";
+
+    let step1Class = "step";
+    let step2Class = "step";
+    let step3Class = "step";
+
+    if (statut === "accepted")          step1Class = "step active";
+    if (statut === "on_the_way")       { step1Class = "step done";   step2Class="step active"; }
+    if (statut === "client_onboard")   { step1Class = "step done";   step2Class="step done"; step3Class="step active"; }
+    if (statut === "completed")        { step1Class = "step done";   step2Class="step done"; step3Class="step done"; }
+
+    let badgeText = "";
+    if (statut === "accepted")        badgeText = "Acceptée - Pars chercher le client";
+    else if (statut === "on_the_way") badgeText = "En route vers le client";
+    else if (statut === "client_onboard") badgeText = "Client à bord";
+    else if (statut === "completed")  badgeText = "Course terminée";
+    else                              badgeText = statut;
+
+    elBadgeRide.textContent = badgeText;
+
+    elCurrentRide.innerHTML = `
+      <div class="ride-card">
+        <div class="ride-header">
+          <span class="ride-tag">${badgeText}</span>
+          <span class="ride-price">${price}</span>
+        </div>
+        <div class="ride-meta">
+          <span>Distance ~ ${dist}</span>
+          <span>Durée ~ ${duree}</span>
+          <span>${(r.vehicleType || "éco").toUpperCase()}</span>
+        </div>
+        <div class="ride-line">
+          <span class="label a">A</span>
+          <span>${r.pickupName || "Point de départ"}</span>
+        </div>
+        <div class="ride-line">
+          <span class="label b">B</span>
+          <span>${r.dropoffName || "Destination"}</span>
+        </div>
+
+        <div class="steps">
+          <div class="${step1Class}">1 • En route</div>
+          <div class="${step2Class}">2 • Client à bord</div>
+          <div class="${step3Class}">3 • Terminer</div>
+        </div>
+
+        <div class="ride-actions">
+          <button class="btn small" onclick="marquerEnRoute()">🚗 En route</button>
+          <button class="btn small" onclick="marquerClientABord()">👥 Client à bord</button>
+          <button class="btn primary" onclick="terminerEtEncaisser()">✅ Course terminée / encaissée</button>
+          <button class="btn danger small" onclick="annulerCourse()">✕ Annuler</button>
+        </div>
+      </div>
+    `;
+  }
+
+  // =========================
+  // ACTIONS SUR LA COURSE
+  // =========================
+  function marquerEnRoute() {
+    if (!state.currentRideId) return;
+    db.ref("rides/" + state.currentRideId).update({
+      status: "on_the_way",
+      driverStatus: "on_the_way",
+      lastUpdateBy: "driver",
+      updatedAt: firebase.database.ServerValue.TIMESTAMP
+    });
+  }
+
+  function marquerClientABord() {
+    if (!state.currentRideId) return;
+    db.ref("rides/" + state.currentRideId).update({
+      status: "client_onboard",
+      driverStatus: "client_onboard",
+      lastUpdateBy: "driver",
+      updatedAt: firebase.database.ServerValue.TIMESTAMP
+    });
+  }
+
+  async function terminerEtEncaisser() {
+    if (!state.currentRideId || !state.currentRideData) return;
+    const r = state.currentRideData;
+
+    // 1) Marquer la course comme terminée
+    await db.ref("rides/" + state.currentRideId).update({
+      status: "completed",
+      driverStatus: "completed",
+      completedAt: firebase.database.ServerValue.TIMESTAMP,
+      lastUpdateBy: "driver"
+    });
+
+    // 2) MAJ stats jour (en local + branchable plus tard en DB)
+    const montant = r.price || 0;
+    state.stats.ridesToday += 1;
+    state.stats.amountToday += montant;
+    rafraichirStats();
+
+    // 3) Libérer le chauffeur pour qu'il puisse accepter une nouvelle course
+    await db.ref("drivers/" + DRIVER_ID).update({
+      status: "available",
+      currentRideId: null,
+      updatedAt: firebase.database.ServerValue.TIMESTAMP
+    });
+
+    // 4) Reset local : c'est là que tu étais bloqué avant
+    state.currentRideId   = null;
+    state.currentRideData = null;
     if (currentRideRef) {
       currentRideRef.off();
+      currentRideRef = null;
     }
-    currentRideRef = db.ref("rides/" + id);
-    currentRideRef.on("value", snap => {
-      const ride = snap.val();
-      if (!ride) return;
-      currentRideData = ride;
-      fillCurrentRide(id, ride);
-      if (ride.status === "completed") {
-        alert("Course terminée. Montant: " + (ride.price || 0).toLocaleString("fr-FR") + " F CFA");
-        showCurrentRideBox(false);
-        currentRideId = null;
-        currentRideRef.off();
-        currentRideRef = null;
-      }
-      if (ride.status === "cancelled") {
-        alert("Course annulée par le client.");
-        showCurrentRideBox(false);
-        currentRideId = null;
-        currentRideRef.off();
-        currentRideRef = null;
-      }
+
+    // 5) UI : retour à "Libre"
+    elBadgeRide.textContent = "Libre";
+    elCurrentRide.innerHTML = `
+      <div class="empty">
+        Course terminée et encaissée ✅  
+        <br>Tu es à nouveau <strong>Disponible</strong> pour une nouvelle course.
+      </div>
+    `;
+  }
+
+  async function annulerCourse() {
+    if (!state.currentRideId) return;
+    if (!confirm("Annuler cette course ?")) return;
+
+    await db.ref("rides/" + state.currentRideId).update({
+      status: "cancelled",
+      cancelledBy: "driver",
+      cancelledAt: firebase.database.ServerValue.TIMESTAMP
     });
-  }
 
-  function fillCurrentRide(id, ride) {
-    document.getElementById("currentRideId").textContent = "#" + id.slice(-6);
-    document.getElementById("currentRideRoute").textContent =
-      `${ride.pickupName || "—"} → ${ride.dropoffName || "—"}`;
-    document.getElementById("currentRidePrice").textContent =
-      (ride.price || 0).toLocaleString("fr-FR") + " FCFA";
-    document.getElementById("currentRideEta").textContent =
-      (ride.duration || 0) + " min";
-
-    const status = ride.status || "searching";
-    let textLabel = "EN ATTENTE";
-    if (status === "accepted") textLabel = "COURSE ACCEPTÉE";
-    if (status === "on_the_way") textLabel = "EN ROUTE VERS LE CLIENT";
-    if (status === "client_onboard") textLabel = "CLIENT À BORD";
-    if (status === "completed") textLabel = "COURSE TERMINÉE";
-    document.getElementById("currentRideStatusLabel").textContent = textLabel;
-
-    updatePhaseDots(status);
-
-    // Activer / désactiver les boutons de phase
-    document.getElementById("btnPhaseOnTheWay").disabled = (status !== "accepted" && status !== "searching");
-    document.getElementById("btnPhaseClientOnboard").disabled = (status !== "on_the_way");
-    document.getElementById("btnPhaseCompleted").disabled = (status !== "client_onboard");
-
-    // Maps visibles si coordonnées
-    document.getElementById("btnMapsPickup").style.display =
-      (ride.pickup && ride.pickup.lat && ride.pickup.lng) ? "inline-flex" : "none";
-    document.getElementById("btnMapsDropoff").style.display =
-      (ride.dropoff && ride.dropoff.lat && ride.dropoff.lng) ? "inline-flex" : "none";
-  }
-
-  function updatePhaseDots(status) {
-    const steps = document.querySelectorAll(".phase-step");
-    steps.forEach(step => {
-      step.classList.remove("active");
-    });
-    const order = ["accepted","on_the_way","client_onboard","completed"];
-    const idx = order.indexOf(status);
-    if (idx >= 0) {
-      for (let i=0;i<=idx;i++){
-        const s = document.querySelector(`.phase-step[data-phase="${order[i]}"]`);
-        if (s) s.classList.add("active");
-      }
-    }
-  }
-
-  function showCurrentRideBox(show) {
-    const box = document.getElementById("currentRideBox");
-    box.style.display = show ? "flex" : "none";
-  }
-
-  // ===== PHASES =====
-  function setPhase(phase) {
-    if (!currentRideId || !currentRideData) return;
-    const allowed = ["on_the_way","client_onboard","completed"];
-    if (!allowed.includes(phase)) return;
-
-    const updates = {
-      status: phase,
-      driverPhase: phase,
+    await db.ref("drivers/" + DRIVER_ID).update({
+      status: state.online ? "available" : "offline",
+      currentRideId: null,
       updatedAt: firebase.database.ServerValue.TIMESTAMP
-    };
-    if (phase === "completed") {
-      updates.completedAt = firebase.database.ServerValue.TIMESTAMP;
+    });
+
+    state.currentRideId = null;
+    state.currentRideData = null;
+    if (currentRideRef) {
+      currentRideRef.off();
+      currentRideRef = null;
     }
 
-    db.ref("rides/" + currentRideId).update(updates);
+    elBadgeRide.textContent = "Libre";
+    elCurrentRide.innerHTML = `
+      <div class="empty">
+        Course annulée.  
+        <br>Tu peux accepter une autre demande.
+      </div>
+    `;
   }
 
-  // ===== MAPS =====
-  function openMapsTo(lat, lng) {
-    const url = `https://www.google.com/maps/dir/?api=1&destination=${lat},${lng}`;
-    window.open(url, "_blank");
+  // =========================
+  // STATS JOUR (LOCAL)
+  // =========================
+  function listenStats() {
+    // Pour l'instant stats en local uniquement
+    rafraichirStats();
   }
 
-  function goToPickup() {
-    if (!currentRideData || !currentRideData.pickup) {
-      alert("Pas de coordonnées de départ.");
-      return;
-    }
-    openMapsTo(currentRideData.pickup.lat, currentRideData.pickup.lng);
+  function rafraichirStats() {
+    elStatRides.textContent  = state.stats.ridesToday.toString();
+    elStatAmount.textContent = state.stats.amountToday.toLocaleString() + " F";
+    elStatComm.textContent   = "0 F";
   }
 
-  function goToDropoff() {
-    if (!currentRideData || !currentRideData.dropoff) {
-      alert("Pas de coordonnées de destination.");
-      return;
-    }
-    openMapsTo(currentRideData.dropoff.lat, currentRideData.dropoff.lng);
-  }
-
-  // ===== PLACEHOLDERS =====
-  function toggleAvailability(){
-    alert("Ici on pourra basculer Disponible / Occupé (à connecter aux drivers_online).");
-  }
-
-  function panicSOS(){
-    alert("🆘 SOS chauffeur : à connecter plus tard à la même logique SOS que le client.");
-  }
+  // =========================
+  // LANCEMENT
+  // =========================
+  document.addEventListener("DOMContentLoaded", init);
 </script>
+
 </body>
 </html>
