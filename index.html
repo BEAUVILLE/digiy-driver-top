@@ -525,7 +525,6 @@
   // INIT
   // =========================
   function init() {
-    // statut initial chauffeur
     db.ref("drivers/" + DRIVER_ID).update({
       name: DRIVER_NAME,
       phone: DRIVER_PHONE,
@@ -583,11 +582,9 @@
       state.pendingRides = {};
       Object.keys(data).forEach(id => {
         const r = data[id];
-        // On ne propose que les courses en "searching"
         if (r.status === "searching") {
           state.pendingRides[id] = r;
         }
-        // Si cette course est déjà la nôtre, on la garde comme course en cours
         if (state.currentRideId === id) {
           state.currentRideData = r;
         }
@@ -671,14 +668,12 @@
       return;
     }
 
-    // On prend la course depuis le cache local (plus sûr que rideRef.get pour l'affichage)
     const r = state.pendingRides[rideId];
     if (!r) {
       alert("Cette course n'est plus disponible.");
       return;
     }
 
-    // 1) Mettre à jour Firebase (si possible) MAIS même si ça rate on affiche côté chauffeur
     const rideRef = db.ref("rides/" + rideId);
     try {
       await rideRef.update({
@@ -704,7 +699,6 @@
       console.log("Firebase a râlé mais on continue en mode démo:", e);
     }
 
-    // 2) Local : on marque cette course comme course en cours
     state.currentRideId = rideId;
     state.currentRideData = {
       ...r,
@@ -720,10 +714,8 @@
       }
     };
 
-    // On enlève la course de la liste des en attente
     delete state.pendingRides[rideId];
 
-    // 3) UI + écoute temps réel
     elBadgeRide.textContent = "Course acceptée";
     renderPending();
     renderCurrentRide();
@@ -731,7 +723,6 @@
   }
 
   function refuserCourse(rideId) {
-    // On peut la laisser pour un autre chauffeur
     alert("Course ignorée. Elle sera proposée à d'autres chauffeurs.");
   }
 
@@ -744,7 +735,6 @@
     currentRideRef.on("value", snap => {
       const r = snap.val();
       if (!r) return;
-      // On met à jour ce qu'on a, mais on garde déjà l'affichage local
       state.currentRideData = { ...state.currentRideData, ...r };
       renderCurrentRide();
     });
@@ -785,6 +775,8 @@
 
     elBadgeRide.textContent = badgeText;
 
+    const phoneText = r.clientPhone ? r.clientPhone : "Téléphone non indiqué";
+
     elCurrentRide.innerHTML = `
       <div class="ride-card">
         <div class="ride-header">
@@ -804,6 +796,10 @@
           <span class="label b">B</span>
           <span>${r.dropoffName || "Destination"}</span>
         </div>
+        <div class="ride-line">
+          <span class="label b">☎</span>
+          <span>${phoneText}</span>
+        </div>
 
         <div class="steps">
           <div class="${step1Class}">1 • En route</div>
@@ -814,6 +810,7 @@
         <div class="ride-actions">
           <button class="btn small" onclick="marquerEnRoute()">🚗 En route</button>
           <button class="btn small" onclick="marquerClientABord()">👥 Client à bord</button>
+          <button class="btn small" onclick="appelerClient()">📞 Appeler le client</button>
           <button class="btn primary" onclick="terminerEtEncaisser()">✅ Course terminée / encaissée</button>
           <button class="btn danger small" onclick="annulerCourse()">✕ Annuler</button>
         </div>
@@ -848,10 +845,18 @@
     renderCurrentRide();
   }
 
+  function appelerClient() {
+    if (!state.currentRideData || !state.currentRideData.clientPhone) {
+      alert("Pas de numéro client disponible.");
+      return;
+    }
+    const tel = state.currentRideData.clientPhone.replace(/\s+/g,'');
+    window.location.href = `tel:${tel}`;
+  }
+
   async function terminerEtEncaisser() {
     if (!state.currentRideId || !state.currentRideData) return;
     const r = state.currentRideData;
-
     const montant = r.price || 0;
 
     try {
@@ -870,12 +875,10 @@
       console.log("Firebase terminé (ou pas) mais on continue local:", e);
     }
 
-    // Stats locales
     state.stats.ridesToday += 1;
     state.stats.amountToday += montant;
     rafraichirStats();
 
-    // Reset local
     state.currentRideId   = null;
     state.currentRideData = null;
     if (currentRideRef) {
