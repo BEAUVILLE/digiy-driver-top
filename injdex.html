@@ -1,0 +1,985 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8">
+  <title>DIGIY DRIVER - App Chauffeur</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  
+  <!-- Firebase -->
+  <script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-database-compat.js"></script>
+  
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      background: #0a0a0a;
+      color: #fff;
+      min-height: 100vh;
+    }
+    
+    /* ÉCRAN LOGIN */
+    .screen { display: none; }
+    .screen.active { display: block; }
+    
+    .login-screen {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 100vh;
+      padding: 20px;
+    }
+    
+    .login-box {
+      background: #1a1a1a;
+      border: 2px solid #FFD700;
+      border-radius: 20px;
+      padding: 40px;
+      max-width: 400px;
+      width: 100%;
+      text-align: center;
+    }
+    
+    .login-box h1 {
+      color: #FFD700;
+      font-size: 28px;
+      margin-bottom: 30px;
+    }
+    
+    .input {
+      width: 100%;
+      padding: 15px;
+      margin-bottom: 15px;
+      background: #252525;
+      border: 2px solid transparent;
+      border-radius: 10px;
+      color: #fff;
+      font-size: 16px;
+      outline: none;
+    }
+    
+    .input:focus { border-color: #FFD700; }
+    
+    .btn {
+      width: 100%;
+      padding: 18px;
+      background: #FFD700;
+      color: #000;
+      border: none;
+      border-radius: 10px;
+      font-size: 18px;
+      font-weight: 700;
+      cursor: pointer;
+      transition: all 0.3s;
+    }
+    
+    .btn:hover { transform: scale(1.02); }
+    
+    /* APP PRINCIPALE */
+    .app {
+      display: flex;
+      flex-direction: column;
+      min-height: 100vh;
+    }
+    
+    /* HEADER */
+    .header {
+      background: #1a1a1a;
+      padding: 15px 20px;
+      border-bottom: 2px solid #FFD700;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    
+    .header h3 { font-size: 18px; }
+    .header .status { font-size: 12px; color: #00C853; }
+    
+    .btn-small {
+      padding: 8px 16px;
+      background: #252525;
+      border: 2px solid #00C853;
+      border-radius: 20px;
+      color: #00C853;
+      font-size: 14px;
+      cursor: pointer;
+    }
+    
+    /* STATS */
+    .stats {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 10px;
+      padding: 15px 20px;
+      background: #1a1a1a;
+    }
+    
+    .stat {
+      text-align: center;
+      padding: 15px;
+      background: #252525;
+      border-radius: 10px;
+    }
+    
+    .stat-value {
+      font-size: 24px;
+      font-weight: 700;
+      color: #FFD700;
+    }
+    
+    .stat-label {
+      font-size: 11px;
+      color: #888;
+      margin-top: 5px;
+    }
+    
+    /* CONTENU */
+    .content {
+      flex: 1;
+      padding: 20px;
+      overflow-y: auto;
+    }
+    
+    .section-title {
+      font-size: 18px;
+      font-weight: 700;
+      margin-bottom: 15px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    
+    /* CARTES COURSE */
+    .course-card {
+      background: #1a1a1a;
+      border-radius: 15px;
+      padding: 20px;
+      margin-bottom: 15px;
+      border: 1px solid #252525;
+    }
+    
+    .course-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 15px;
+    }
+    
+    .badge {
+      padding: 5px 12px;
+      border-radius: 20px;
+      font-size: 12px;
+      font-weight: 600;
+    }
+    
+    .badge-available { background: #1E88E5; color: #fff; }
+    .badge-active { background: #FFD700; color: #000; }
+    
+    .price {
+      font-size: 24px;
+      font-weight: 800;
+      color: #FFD700;
+    }
+    
+    .course-info {
+      margin: 15px 0;
+      line-height: 1.8;
+    }
+    
+    .course-info div {
+      display: flex;
+      align-items: start;
+      gap: 10px;
+      margin-bottom: 10px;
+    }
+    
+    .course-actions {
+      display: flex;
+      gap: 10px;
+      margin-top: 15px;
+    }
+    
+    .btn-accept {
+      flex: 2;
+      padding: 15px;
+      background: #00C853;
+      color: #fff;
+      border: none;
+      border-radius: 10px;
+      font-weight: 700;
+      cursor: pointer;
+    }
+    
+    .btn-refuse {
+      flex: 1;
+      padding: 15px;
+      background: #252525;
+      color: #FF5252;
+      border: 2px solid #FF5252;
+      border-radius: 10px;
+      font-weight: 600;
+      cursor: pointer;
+    }
+    
+    .btn-action {
+      width: 100%;
+      padding: 18px;
+      background: #FFD700;
+      color: #000;
+      border: none;
+      border-radius: 10px;
+      font-size: 16px;
+      font-weight: 700;
+      cursor: pointer;
+      margin-bottom: 10px;
+    }
+    
+    .btn-secondary {
+      width: 100%;
+      padding: 12px;
+      background: #252525;
+      color: #fff;
+      border: 2px solid #555;
+      border-radius: 10px;
+      cursor: pointer;
+      margin-bottom: 10px;
+    }
+    
+    /* PROGRESSION */
+    .progress {
+      display: flex;
+      justify-content: space-between;
+      margin: 20px 0;
+      position: relative;
+    }
+    
+    .progress::before {
+      content: '';
+      position: absolute;
+      top: 15px;
+      left: 10%;
+      right: 10%;
+      height: 3px;
+      background: #252525;
+    }
+    
+    .step {
+      text-align: center;
+      position: relative;
+      z-index: 1;
+    }
+    
+    .step-circle {
+      width: 30px;
+      height: 30px;
+      border-radius: 50%;
+      background: #252525;
+      color: #666;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 700;
+      margin-bottom: 5px;
+    }
+    
+    .step.active .step-circle {
+      background: #FFD700;
+      color: #000;
+    }
+    
+    .step.completed .step-circle {
+      background: #00C853;
+      color: #fff;
+    }
+    
+    .step-label {
+      font-size: 10px;
+      color: #888;
+    }
+    
+    /* GPS MAP */
+    .map {
+      height: 250px;
+      background: #252525;
+      border-radius: 15px;
+      margin: 20px 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: #888;
+      position: relative;
+      overflow: hidden;
+    }
+    
+    #map-canvas {
+      width: 100%;
+      height: 100%;
+      border-radius: 15px;
+    }
+    
+    /* EMPTY STATE */
+    .empty {
+      text-align: center;
+      padding: 60px 20px;
+      color: #666;
+    }
+    
+    .empty-icon {
+      font-size: 60px;
+      margin-bottom: 15px;
+      opacity: 0.5;
+    }
+    
+    /* ALERTS */
+    .alert {
+      position: fixed;
+      top: 20px;
+      right: 20px;
+      padding: 15px 20px;
+      background: #00C853;
+      color: #fff;
+      border-radius: 10px;
+      z-index: 9999;
+      animation: slideIn 0.3s;
+    }
+    
+    .alert.error { background: #FF5252; }
+    
+    @keyframes slideIn {
+      from { transform: translateX(400px); }
+      to { transform: translateX(0); }
+    }
+  </style>
+</head>
+<body>
+
+<!-- ÉCRAN 1: LOGIN -->
+<div id="screenLogin" class="screen active">
+  <div class="login-screen">
+    <div class="login-box">
+      <h1>🚗 DIGIY DRIVER</h1>
+      <input type="text" id="inputName" class="input" placeholder="Votre prénom">
+      <input type="tel" id="inputPhone" class="input" placeholder="Téléphone (77...)" maxlength="9">
+      <input type="text" id="inputPlate" class="input" placeholder="Plaque (DK-1234-AB)">
+      <button class="btn" onclick="login()">Commencer 🚀</button>
+    </div>
+  </div>
+</div>
+
+<!-- ÉCRAN 2: COURSES DISPONIBLES -->
+<div id="screenAvailable" class="screen">
+  <div class="app">
+    <div class="header">
+      <div>
+        <h3 id="driverName">Chauffeur</h3>
+        <div class="status">● En ligne</div>
+      </div>
+      <button class="btn-small" onclick="logout()">Déconnexion</button>
+    </div>
+    
+    <div class="stats">
+      <div class="stat">
+        <div class="stat-value" id="statCourses">0</div>
+        <div class="stat-label">Courses</div>
+      </div>
+      <div class="stat">
+        <div class="stat-value" id="statEarnings">0</div>
+        <div class="stat-label">FCFA</div>
+      </div>
+      <div class="stat">
+        <div class="stat-value">5.0</div>
+        <div class="stat-label">⭐ Note</div>
+      </div>
+    </div>
+    
+    <div class="content">
+      <div class="section-title">
+        <span>🔍</span>
+        <span>Courses disponibles</span>
+      </div>
+      
+      <div id="availableList">
+        <div class="empty">
+          <div class="empty-icon">⏳</div>
+          <p>Recherche de courses...</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ÉCRAN 3: COURSE EN COURS -->
+<div id="screenActive" class="screen">
+  <div class="app">
+    <div class="header">
+      <div>
+        <h3 id="driverName2">Chauffeur</h3>
+        <div class="status">● En course</div>
+      </div>
+      <button class="btn-small" style="border-color: #FF5252; color: #FF5252;" onclick="cancelRide()">Annuler</button>
+    </div>
+    
+    <div class="content">
+      <div class="section-title">
+        <span>🚗</span>
+        <span>Course en cours</span>
+      </div>
+      
+      <!-- PROGRESSION -->
+      <div class="progress">
+        <div class="step" id="step1">
+          <div class="step-circle">1</div>
+          <div class="step-label">Acceptée</div>
+        </div>
+        <div class="step" id="step2">
+          <div class="step-circle">2</div>
+          <div class="step-label">En route</div>
+        </div>
+        <div class="step" id="step3">
+          <div class="step-circle">3</div>
+          <div class="step-label">À bord</div>
+        </div>
+        <div class="step" id="step4">
+          <div class="step-circle">4</div>
+          <div class="step-label">Arrivé</div>
+        </div>
+      </div>
+      
+      <!-- INFO COURSE -->
+      <div class="course-card">
+        <div class="course-header">
+          <span class="badge badge-active">En cours</span>
+          <span class="price" id="activePrice">0 F</span>
+        </div>
+        
+        <div class="course-info">
+          <div>
+            <span>👤</span>
+            <div>
+              <strong id="activeClient">Client</strong><br>
+              <small id="activePhone" style="color: #888;">Téléphone</small>
+            </div>
+          </div>
+          <div>
+            <span>📍</span>
+            <div id="activePickup">Départ</div>
+          </div>
+          <div>
+            <span>🏁</span>
+            <div id="activeDropoff">Arrivée</div>
+          </div>
+        </div>
+        
+        <!-- GPS MAP -->
+        <div class="map">
+          <div id="map-canvas"></div>
+          <div id="map-placeholder" style="position: absolute;">
+            🗺️ GPS en temps réel
+          </div>
+        </div>
+        
+        <!-- BOUTONS -->
+        <button id="actionBtn" class="btn-action" onclick="nextStep()">
+          🚗 Je suis en route
+        </button>
+        
+        <button class="btn-secondary" onclick="callClient()">
+          📞 Appeler le client
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ÉCRAN 4: PAIEMENT -->
+<div id="screenPayment" class="screen">
+  <div class="app">
+    <div class="header">
+      <div>
+        <h3 id="driverName3">Chauffeur</h3>
+        <div class="status">✅ Terminée</div>
+      </div>
+      <button class="btn-small" onclick="showScreen('screenAvailable')">Retour</button>
+    </div>
+    
+    <div class="content">
+      <div style="text-align: center; margin-bottom: 30px;">
+        <div style="font-size: 60px; margin-bottom: 15px;">✅</div>
+        <h2 style="font-size: 24px; margin-bottom: 10px;">Course Terminée !</h2>
+      </div>
+      
+      <div class="course-card">
+        <div class="course-info">
+          <div>
+            <span>👤</span>
+            <div><strong id="paymentClient">Client</strong></div>
+          </div>
+          <div>
+            <span>🗺️</span>
+            <div id="paymentRoute">Trajet</div>
+          </div>
+        </div>
+        
+        <div style="text-align: center; margin: 30px 0;">
+          <div style="font-size: 36px; font-weight: 800; color: #FFD700;" id="paymentPrice">0 FCFA</div>
+        </div>
+        
+        <button class="btn-action" onclick="markAsPaid()">
+          💰 Marquer comme payé
+        </button>
+        
+        <button class="btn-secondary" onclick="reportIssue()">
+          ⚠️ Signaler un problème
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+// ============================================
+// FIREBASE CONFIGURATION
+// ============================================
+const firebaseConfig = {
+  apiKey: "AIzaSyBqEQWoE2iC7_rp-u4riilNVHolcP2o0B0",
+  authDomain: "digiylyfe-ecosystem.firebaseapp.com",
+  databaseURL: "https://digiylyfe-ecosystem-default-rtdb.europe-west1.firebasedatabase.app",
+  projectId: "digiylyfe-ecosystem",
+  storageBucket: "digiylyfe-ecosystem.firebasestorage.app",
+  messagingSenderId: "1007962643384",
+  appId: "1:1007962643384:web:20d26881e87f0dc37d0d4d"
+};
+
+firebase.initializeApp(firebaseConfig);
+const db = firebase.database();
+
+// ============================================
+// VARIABLES GLOBALES
+// ============================================
+let driver = {
+  id: null,
+  name: '',
+  phone: '',
+  plate: '',
+  position: null
+};
+
+let currentRide = null;
+let currentStep = 1;
+let stats = { courses: 0, earnings: 0 };
+let gpsWatchId = null;
+let map = null;
+let marker = null;
+
+// ============================================
+// LOGIN
+// ============================================
+function login() {
+  const name = document.getElementById('inputName').value.trim();
+  const phone = document.getElementById('inputPhone').value.trim();
+  const plate = document.getElementById('inputPlate').value.trim();
+  
+  if (!name || !phone || !plate) {
+    showAlert('Remplissez tous les champs', 'error');
+    return;
+  }
+  
+  driver.id = 'driver_' + Date.now();
+  driver.name = name;
+  driver.phone = '+221' + phone;
+  driver.plate = plate;
+  
+  localStorage.setItem('digiy_driver', JSON.stringify(driver));
+  
+  document.getElementById('driverName').textContent = name;
+  document.getElementById('driverName2').textContent = name;
+  document.getElementById('driverName3').textContent = name;
+  
+  showScreen('screenAvailable');
+  startGPS();
+  goOnline();
+  loadAvailableRides();
+  
+  showAlert('Connecté ! Bienvenue ' + name);
+}
+
+function logout() {
+  if (!confirm('Se déconnecter ?')) return;
+  
+  goOffline();
+  stopGPS();
+  localStorage.removeItem('digiy_driver');
+  location.reload();
+}
+
+// ============================================
+// FIREBASE - STATUT EN LIGNE
+// ============================================
+function goOnline() {
+  db.ref('drivers_online/' + driver.id).set({
+    id: driver.id,
+    name: driver.name,
+    phone: driver.phone,
+    plate: driver.plate,
+    online: true,
+    position: driver.position || { lat: 14.6937, lng: -17.4441 },
+    connectedAt: firebase.database.ServerValue.TIMESTAMP
+  });
+}
+
+function goOffline() {
+  if (driver.id) {
+    db.ref('drivers_online/' + driver.id).remove();
+  }
+}
+
+// ============================================
+// GPS TRACKING
+// ============================================
+function startGPS() {
+  if (!navigator.geolocation) {
+    showAlert('GPS non disponible', 'error');
+    return;
+  }
+  
+  gpsWatchId = navigator.geolocation.watchPosition(
+    (position) => {
+      driver.position = {
+        lat: position.coords.latitude,
+        lng: position.coords.longitude
+      };
+      
+      // Mettre à jour Firebase
+      if (driver.id) {
+        db.ref('drivers_online/' + driver.id + '/position').set(driver.position);
+      }
+      
+      // Mettre à jour la carte si active
+      if (map && marker) {
+        marker.setPosition(new google.maps.LatLng(driver.position.lat, driver.position.lng));
+        map.panTo(marker.getPosition());
+      }
+    },
+    (error) => console.error('GPS Error:', error),
+    { enableHighAccuracy: true, maximumAge: 5000, timeout: 10000 }
+  );
+}
+
+function stopGPS() {
+  if (gpsWatchId) {
+    navigator.geolocation.clearWatch(gpsWatchId);
+  }
+}
+
+function initMap() {
+  if (!driver.position) return;
+  
+  const mapDiv = document.getElementById('map-canvas');
+  if (!mapDiv) return;
+  
+  // Cacher le placeholder
+  document.getElementById('map-placeholder').style.display = 'none';
+  
+  // Initialiser Google Maps (ou fallback simple)
+  if (typeof google !== 'undefined' && google.maps) {
+    map = new google.maps.Map(mapDiv, {
+      center: { lat: driver.position.lat, lng: driver.position.lng },
+      zoom: 15,
+      disableDefaultUI: true
+    });
+    
+    marker = new google.maps.Marker({
+      position: { lat: driver.position.lat, lng: driver.position.lng },
+      map: map,
+      icon: {
+        url: 'data:image/svg+xml;charset=UTF-8,' + encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" width="30" height="30" viewBox="0 0 30 30"><circle cx="15" cy="15" r="10" fill="#FFD700" stroke="#000" stroke-width="2"/><text x="15" y="20" font-size="16" text-anchor="middle" fill="#000">🚗</text></svg>')
+      }
+    });
+  } else {
+    // Fallback simple
+    mapDiv.innerHTML = `
+      <div style="padding: 20px; text-align: center;">
+        <div style="font-size: 40px; margin-bottom: 10px;">📍</div>
+        <div>Position: ${driver.position.lat.toFixed(4)}, ${driver.position.lng.toFixed(4)}</div>
+        <div style="font-size: 12px; color: #888; margin-top: 5px;">GPS actif</div>
+      </div>
+    `;
+  }
+}
+
+// ============================================
+// COURSES DISPONIBLES
+// ============================================
+function loadAvailableRides() {
+  const list = document.getElementById('availableList');
+  
+  db.ref('rides').orderByChild('status').equalTo('searching').on('value', (snapshot) => {
+    list.innerHTML = '';
+    
+    let hasRides = false;
+    
+    snapshot.forEach((child) => {
+      const ride = child.val();
+      const rideId = child.key;
+      
+      hasRides = true;
+      
+      const card = document.createElement('div');
+      card.className = 'course-card';
+      card.innerHTML = `
+        <div class="course-header">
+          <span class="badge badge-available">Disponible</span>
+          <span class="price">${(ride.price || 0).toLocaleString()} F</span>
+        </div>
+        <div class="course-info">
+          <div><span>📍</span><div>${ride.pickupName || 'Départ'}</div></div>
+          <div><span>🏁</span><div>${ride.dropoffName || 'Arrivée'}</div></div>
+          <div><span>📏</span><div>${(ride.distance || 0).toFixed(1)} km</div></div>
+        </div>
+        <div class="course-actions">
+          <button class="btn-accept" onclick='acceptRide("${rideId}")'>✓ Accepter</button>
+          <button class="btn-refuse" onclick='ignoreRide("${rideId}")'>✕ Ignorer</button>
+        </div>
+      `;
+      
+      list.appendChild(card);
+    });
+    
+    if (!hasRides) {
+      list.innerHTML = '<div class="empty"><div class="empty-icon">⏳</div><p>Aucune course disponible</p></div>';
+    }
+  });
+}
+
+function acceptRide(rideId) {
+  db.ref('rides/' + rideId).once('value', (snapshot) => {
+    const ride = snapshot.val();
+    
+    if (!ride || ride.status !== 'searching') {
+      showAlert('Course déjà prise', 'error');
+      return;
+    }
+    
+    currentRide = { id: rideId, ...ride };
+    currentStep = 1;
+    
+    // Mettre à jour Firebase
+    db.ref('rides/' + rideId).update({
+      status: 'accepted',
+      driver: {
+        id: driver.id,
+        name: driver.name,
+        phone: driver.phone,
+        plate: driver.plate
+      },
+      acceptedAt: firebase.database.ServerValue.TIMESTAMP
+    });
+    
+    // Afficher l'écran course active
+    displayActiveRide();
+    showScreen('screenActive');
+    
+    // Initialiser la carte GPS
+    setTimeout(initMap, 500);
+    
+    showAlert('Course acceptée !');
+  });
+}
+
+function ignoreRide(rideId) {
+  console.log('Course ignorée:', rideId);
+}
+
+// ============================================
+// COURSE EN COURS
+// ============================================
+function displayActiveRide() {
+  if (!currentRide) return;
+  
+  document.getElementById('activeClient').textContent = currentRide.clientName || 'Client';
+  document.getElementById('activePhone').textContent = currentRide.clientPhone || 'N/A';
+  document.getElementById('activePickup').textContent = currentRide.pickupName || 'Départ';
+  document.getElementById('activeDropoff').textContent = currentRide.dropoffName || 'Arrivée';
+  document.getElementById('activePrice').textContent = (currentRide.price || 0).toLocaleString() + ' F';
+  
+  updateStepDisplay();
+}
+
+function updateStepDisplay() {
+  // Reset all steps
+  for (let i = 1; i <= 4; i++) {
+    const step = document.getElementById('step' + i);
+    step.classList.remove('active', 'completed');
+    
+    if (i < currentStep) {
+      step.classList.add('completed');
+    } else if (i === currentStep) {
+      step.classList.add('active');
+    }
+  }
+  
+  // Update button
+  const btn = document.getElementById('actionBtn');
+  const actions = {
+    1: { text: '🚗 Je suis en route', status: 'picking_up' },
+    2: { text: '👤 Client à bord', status: 'in_progress' },
+    3: { text: '🏁 Arrivé à destination', status: 'arrived' },
+    4: { text: '✅ Terminer la course', status: 'completed' }
+  };
+  
+  const action = actions[currentStep];
+  if (action) {
+    btn.textContent = action.text;
+  }
+}
+
+function nextStep() {
+  if (!currentRide) return;
+  
+  const actions = {
+    1: 'picking_up',
+    2: 'in_progress',
+    3: 'arrived',
+    4: 'completed'
+  };
+  
+  const newStatus = actions[currentStep];
+  
+  if (currentStep === 4) {
+    // Terminer la course
+    completeRide();
+  } else {
+    // Passer à l'étape suivante
+    db.ref('rides/' + currentRide.id).update({
+      status: newStatus,
+      [newStatus + 'At']: firebase.database.ServerValue.TIMESTAMP
+    });
+    
+    currentStep++;
+    updateStepDisplay();
+  }
+}
+
+function completeRide() {
+  db.ref('rides/' + currentRide.id).update({
+    status: 'completed',
+    completedAt: firebase.database.ServerValue.TIMESTAMP
+  });
+  
+  // Afficher l'écran paiement
+  displayPayment();
+  showScreen('screenPayment');
+}
+
+function cancelRide() {
+  if (!confirm('Annuler cette course ?')) return;
+  
+  db.ref('rides/' + currentRide.id).update({
+    status: 'cancelled',
+    cancelledBy: 'driver',
+    cancelledAt: firebase.database.ServerValue.TIMESTAMP
+  });
+  
+  currentRide = null;
+  currentStep = 1;
+  
+  showScreen('screenAvailable');
+  showAlert('Course annulée');
+}
+
+function callClient() {
+  if (currentRide && currentRide.clientPhone) {
+    window.location.href = 'tel:' + currentRide.clientPhone;
+  }
+}
+
+// ============================================
+// PAIEMENT
+// ============================================
+function displayPayment() {
+  if (!currentRide) return;
+  
+  document.getElementById('paymentClient').textContent = currentRide.clientName || 'Client';
+  document.getElementById('paymentRoute').textContent = 
+    (currentRide.pickupName || 'Départ') + ' → ' + (currentRide.dropoffName || 'Arrivée');
+  document.getElementById('paymentPrice').textContent = (currentRide.price || 0).toLocaleString() + ' FCFA';
+}
+
+function markAsPaid() {
+  if (!currentRide) return;
+  
+  if (!confirm('Confirmer le paiement de ' + (currentRide.price || 0).toLocaleString() + ' FCFA ?')) {
+    return;
+  }
+  
+  db.ref('rides/' + currentRide.id).update({
+    isPaid: true,
+    paidAt: firebase.database.ServerValue.TIMESTAMP
+  });
+  
+  // Mettre à jour les stats
+  stats.courses++;
+  stats.earnings += currentRide.price || 0;
+  
+  document.getElementById('statCourses').textContent = stats.courses;
+  document.getElementById('statEarnings').textContent = stats.earnings.toLocaleString();
+  
+  currentRide = null;
+  currentStep = 1;
+  
+  showScreen('screenAvailable');
+  showAlert('Paiement enregistré ! 💰');
+}
+
+function reportIssue() {
+  const issue = prompt('Décrivez le problème:');
+  if (!issue) return;
+  
+  db.ref('issues').push({
+    rideId: currentRide.id,
+    driverId: driver.id,
+    issue: issue,
+    createdAt: firebase.database.ServerValue.TIMESTAMP
+  });
+  
+  showAlert('Problème signalé');
+}
+
+// ============================================
+// UTILITAIRES
+// ============================================
+function showScreen(screenId) {
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  document.getElementById(screenId).classList.add('active');
+}
+
+function showAlert(message, type = 'success') {
+  const alert = document.createElement('div');
+  alert.className = 'alert' + (type === 'error' ? ' error' : '');
+  alert.textContent = message;
+  
+  document.body.appendChild(alert);
+  
+  setTimeout(() => alert.remove(), 3000);
+}
+
+// ============================================
+// AUTO-LOGIN SI DÉJÀ CONNECTÉ
+// ============================================
+window.addEventListener('load', () => {
+  const saved = localStorage.getItem('digiy_driver');
+  if (saved) {
+    const savedDriver = JSON.parse(saved);
+    
+    // Auto-remplir
+    document.getElementById('inputName').value = savedDriver.name || '';
+    document.getElementById('inputPhone').value = (savedDriver.phone || '').replace('+221', '');
+    document.getElementById('inputPlate').value = savedDriver.plate || '';
+  }
+});
+</script>
+
+</body>
+</html>
