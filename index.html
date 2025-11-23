@@ -761,14 +761,18 @@
 
 <script>
   const firebaseConfig = {
-    apiKey: "AIzaSyDjHtYEu7yU-4zEBXY3jB_hf_fE63fW6g8",
-    authDomain: "digiylyfe-app.firebaseapp.com",
-    databaseURL: "https://digiylyfe-app-default-rtdb.firebaseio.com",
-    projectId: "digiylyfe-app",
-    storageBucket: "digiylyfe-app.appspot.com",
-    messagingSenderId: "156766943890",
-    appId: "1:156766943890:web:8f4e6e9d8e8e8e8e8e8e8e"
-  };
+  apiKey: "AIzaSyBqEQWoE2iC7_rp-u4riilNVHolcP2o0B0",
+  authDomain: "digiylyfe-ecosystem.firebaseapp.com",
+  databaseURL: "https://digiylyfe-ecosystem-default-rtdb.europe-west1.firebasedatabase.app",
+  projectId: "digiylyfe-ecosystem",
+  storageBucket: "digiylyfe-ecosystem.firebasestorage.app",
+  messagingSenderId: "1007962643384",
+  appId: "1:1007962643384:web:20d26881e87f0dc37d0d4d"
+};
+
+firebase.initializeApp(firebaseConfig);
+const db = firebase.database();
+
 
   firebase.initializeApp(firebaseConfig);
   const db = firebase.database();
