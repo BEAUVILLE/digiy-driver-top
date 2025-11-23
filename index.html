@@ -258,6 +258,7 @@
 
     .ride-actions{
       display:flex;
+      flex-wrap:wrap;
       gap:8px;
       margin-top:8px;
     }
@@ -294,9 +295,11 @@
       display:flex;
       gap:6px;
       margin-top:6px;
+      flex-wrap:wrap;
     }
     .step{
       flex:1;
+      min-width:80px;
       border-radius:999px;
       border:1px solid rgba(75,85,99,0.9);
       font-size:10px;
@@ -584,13 +587,13 @@
         if (r.status === "searching") {
           state.pendingRides[id] = r;
         }
-        // Si cette course est déjà la nôtre, on l'affiche en cours
+        // Si cette course est déjà la nôtre, on la garde comme course en cours
         if (state.currentRideId === id) {
           state.currentRideData = r;
-          renderCurrentRide();
         }
       });
       renderPending();
+      renderCurrentRide();
     });
   }
 
@@ -667,17 +670,44 @@
       alert("Tu as déjà une course en cours. Termine-la avant d'en accepter une autre.");
       return;
     }
-    const rideRef = db.ref("rides/" + rideId);
 
-    const snap = await rideRef.get();
-    const r = snap.val();
-    if (!r || r.status !== "searching") {
+    // On prend la course depuis le cache local (plus sûr que rideRef.get pour l'affichage)
+    const r = state.pendingRides[rideId];
+    if (!r) {
       alert("Cette course n'est plus disponible.");
       return;
     }
 
-    // On passe en 'accepted' et on assigne le chauffeur
-    await rideRef.update({
+    // 1) Mettre à jour Firebase (si possible) MAIS même si ça rate on affiche côté chauffeur
+    const rideRef = db.ref("rides/" + rideId);
+    try {
+      await rideRef.update({
+        status: "accepted",
+        driverId: DRIVER_ID,
+        driver: {
+          id: DRIVER_ID,
+          name: DRIVER_NAME,
+          phone: DRIVER_PHONE,
+          vehicle: VEHICLE,
+          color: VEHICLE_COLOR,
+          plate: VEHICLE_PLATE
+        },
+        acceptedAt: firebase.database.ServerValue.TIMESTAMP
+      });
+
+      await db.ref("drivers/" + DRIVER_ID).update({
+        status: "busy",
+        currentRideId: rideId,
+        updatedAt: firebase.database.ServerValue.TIMESTAMP
+      });
+    } catch (e) {
+      console.log("Firebase a râlé mais on continue en mode démo:", e);
+    }
+
+    // 2) Local : on marque cette course comme course en cours
+    state.currentRideId = rideId;
+    state.currentRideData = {
+      ...r,
       status: "accepted",
       driverId: DRIVER_ID,
       driver: {
@@ -687,27 +717,21 @@
         vehicle: VEHICLE,
         color: VEHICLE_COLOR,
         plate: VEHICLE_PLATE
-      },
-      acceptedAt: firebase.database.ServerValue.TIMESTAMP
-    });
+      }
+    };
 
-    // On marque le chauffeur occupé
-    await db.ref("drivers/" + DRIVER_ID).update({
-      status: "busy",
-      currentRideId: rideId,
-      updatedAt: firebase.database.ServerValue.TIMESTAMP
-    });
+    // On enlève la course de la liste des en attente
+    delete state.pendingRides[rideId];
 
-    state.currentRideId   = rideId;
-    state.currentRideData = r;
+    // 3) UI + écoute temps réel
     elBadgeRide.textContent = "Course acceptée";
-    listenCurrentRide(rideId);
+    renderPending();
     renderCurrentRide();
+    listenCurrentRide(rideId);
   }
 
   function refuserCourse(rideId) {
-    // On peut simplement la laisser en "searching" (un autre prendra),
-    // ou marquer un champ "refusedBy". Pour l'instant on ne touche pas au statut.
+    // On peut la laisser pour un autre chauffeur
     alert("Course ignorée. Elle sera proposée à d'autres chauffeurs.");
   }
 
@@ -720,7 +744,8 @@
     currentRideRef.on("value", snap => {
       const r = snap.val();
       if (!r) return;
-      state.currentRideData = r;
+      // On met à jour ce qu'on a, mais on garde déjà l'affichage local
+      state.currentRideData = { ...state.currentRideData, ...r };
       renderCurrentRide();
     });
   }
@@ -806,7 +831,9 @@
       driverStatus: "on_the_way",
       lastUpdateBy: "driver",
       updatedAt: firebase.database.ServerValue.TIMESTAMP
-    });
+    }).catch(()=>{});
+    state.currentRideData.status = "on_the_way";
+    renderCurrentRide();
   }
 
   function marquerClientABord() {
@@ -816,35 +843,39 @@
       driverStatus: "client_onboard",
       lastUpdateBy: "driver",
       updatedAt: firebase.database.ServerValue.TIMESTAMP
-    });
+    }).catch(()=>{});
+    state.currentRideData.status = "client_onboard";
+    renderCurrentRide();
   }
 
   async function terminerEtEncaisser() {
     if (!state.currentRideId || !state.currentRideData) return;
     const r = state.currentRideData;
 
-    // 1) Marquer la course comme terminée
-    await db.ref("rides/" + state.currentRideId).update({
-      status: "completed",
-      driverStatus: "completed",
-      completedAt: firebase.database.ServerValue.TIMESTAMP,
-      lastUpdateBy: "driver"
-    });
-
-    // 2) MAJ stats jour (en local + branchable plus tard en DB)
     const montant = r.price || 0;
+
+    try {
+      await db.ref("rides/" + state.currentRideId).update({
+        status: "completed",
+        driverStatus: "completed",
+        completedAt: firebase.database.ServerValue.TIMESTAMP,
+        lastUpdateBy: "driver"
+      });
+      await db.ref("drivers/" + DRIVER_ID).update({
+        status: state.online ? "available" : "offline",
+        currentRideId: null,
+        updatedAt: firebase.database.ServerValue.TIMESTAMP
+      });
+    } catch(e){
+      console.log("Firebase terminé (ou pas) mais on continue local:", e);
+    }
+
+    // Stats locales
     state.stats.ridesToday += 1;
     state.stats.amountToday += montant;
     rafraichirStats();
 
-    // 3) Libérer le chauffeur pour qu'il puisse accepter une nouvelle course
-    await db.ref("drivers/" + DRIVER_ID).update({
-      status: "available",
-      currentRideId: null,
-      updatedAt: firebase.database.ServerValue.TIMESTAMP
-    });
-
-    // 4) Reset local : c'est là que tu étais bloqué avant
+    // Reset local
     state.currentRideId   = null;
     state.currentRideData = null;
     if (currentRideRef) {
@@ -852,7 +883,6 @@
       currentRideRef = null;
     }
 
-    // 5) UI : retour à "Libre"
     elBadgeRide.textContent = "Libre";
     elCurrentRide.innerHTML = `
       <div class="empty">
@@ -866,17 +896,20 @@
     if (!state.currentRideId) return;
     if (!confirm("Annuler cette course ?")) return;
 
-    await db.ref("rides/" + state.currentRideId).update({
-      status: "cancelled",
-      cancelledBy: "driver",
-      cancelledAt: firebase.database.ServerValue.TIMESTAMP
-    });
-
-    await db.ref("drivers/" + DRIVER_ID).update({
-      status: state.online ? "available" : "offline",
-      currentRideId: null,
-      updatedAt: firebase.database.ServerValue.TIMESTAMP
-    });
+    try {
+      await db.ref("rides/" + state.currentRideId).update({
+        status: "cancelled",
+        cancelledBy: "driver",
+        cancelledAt: firebase.database.ServerValue.TIMESTAMP
+      });
+      await db.ref("drivers/" + DRIVER_ID).update({
+        status: state.online ? "available" : "offline",
+        currentRideId: null,
+        updatedAt: firebase.database.ServerValue.TIMESTAMP
+      });
+    } catch(e){
+      console.log("Annulation Firebase en erreur, mais local ok:", e);
+    }
 
     state.currentRideId = null;
     state.currentRideData = null;
@@ -898,7 +931,6 @@
   // STATS JOUR (LOCAL)
   // =========================
   function listenStats() {
-    // Pour l'instant stats en local uniquement
     rafraichirStats();
   }
 
