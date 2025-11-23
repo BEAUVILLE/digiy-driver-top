@@ -501,7 +501,7 @@
     zone: "Dakar"
   };
 
-  // 🔥 Firebase config (même que le client)
+  // 🔥 Firebase config (même projet que le client)
   const firebaseConfig = {
     apiKey: "AIzaSyBqEQWoE2iC7_rp-u4riilNVHolcP2o0B0",
     authDomain: "digiylyfe-ecosystem.firebaseapp.com",
@@ -518,6 +518,7 @@
 
   // ===== INIT =====
   document.addEventListener("DOMContentLoaded", () => {
+    console.log("🚗 DIGIY DRIVER — panneau chauffeur chargé");
     document.getElementById("driverName").textContent = DRIVER_NAME;
     document.getElementById("driverIdLabel").textContent = "ID: " + DRIVER_ID;
     document.getElementById("driverProfileLabel").textContent =
@@ -525,8 +526,9 @@
 
     firebase.initializeApp(firebaseConfig);
     db = firebase.database();
+    console.log("🔥 Firebase initialisé côté DRIVER");
 
-    // écoute temps réel des courses en statut "searching"
+    // écoute temps réel des courses
     listenForRides();
     // enregistre le chauffeur online
     markDriverOnline();
@@ -547,13 +549,18 @@
       updatedAt: firebase.database.ServerValue.TIMESTAMP
     });
     ref.onDisconnect().remove();
+    console.log("👤 Chauffeur marqué en ligne:", DRIVER_ID);
   }
 
   // ===== ÉCOUTE COURSES EN ATTENTE =====
   function listenForRides() {
     const ridesRef = db.ref("rides");
+    console.log("👂 Écoute Firebase sur /rides ...");
+
+    // value = on reçoit tout l'arbre à chaque changement (simple, mais verbeux)
     ridesRef.on("value", snap => {
       const data = snap.val() || {};
+      console.log("📡 Snapshot /rides reçu:", data);
       renderRides(data);
     });
   }
@@ -568,10 +575,14 @@
     entries.sort((a,b) => (b[1].timestamp||0) - (a[1].timestamp||0));
 
     entries.forEach(([id, ride]) => {
-      // On montre :
-      // - toutes les courses en "searching"
-      // - la course du chauffeur si "accepted" / "in_progress"
+      // On log chaque course pour debug
+      console.log("➡️ Ride vue côté DRIVER:", id, ride);
+
       const isMine = ride.driverId === DRIVER_ID;
+
+      // On montre :
+      // - toutes les courses en "searching" (en attente)
+      // - la course du chauffeur si "accepted" / "in_progress" / "arrived"
       if (ride.status === "searching" || (isMine && ["accepted","in_progress","arrived"].includes(ride.status))) {
         count++;
         list.appendChild(buildRideCard(id, ride, isMine));
@@ -738,6 +749,7 @@
       currentRideRef.on("value", snap => {
         const r = snap.val();
         if (!r) return;
+        console.log("📡 Update course active:", r.status, r);
         if (r.status === "completed") {
           alert("Course terminée. Montant: " + (r.price || 0).toLocaleString("fr-FR") + " F CFA");
           currentRideId = null;
