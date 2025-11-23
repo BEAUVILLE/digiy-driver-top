@@ -12,7 +12,6 @@
     }
 
     :root{
-      /* Palette DIGIY noir & or */
       --bg:#050814;
       --bg-soft:#0b1020;
       --card:#020617;
@@ -37,7 +36,6 @@
       min-height:100vh;
     }
 
-    /* HEADER */
     .header{
       background:rgba(2,6,23,0.96);
       backdrop-filter:blur(14px);
@@ -132,7 +130,6 @@
       transform:translateY(-1px);
     }
 
-    /* LOGIN SCREEN */
     .login-screen{
       min-height:100vh;
       display:flex;
@@ -281,7 +278,6 @@
       font-weight:600;
     }
 
-    /* MAIN APP */
     .app-container{
       display:none;
       max-width:1180px;
@@ -289,7 +285,6 @@
       padding:18px 16px 70px;
     }
 
-    /* STATS GRID */
     .stats-grid{
       display:grid;
       grid-template-columns:repeat(auto-fit,minmax(150px,1fr));
@@ -340,7 +335,6 @@
       letter-spacing:0.08em;
     }
 
-    /* SECTIONS */
     .section{
       background:radial-gradient(circle at top,#020617 0,#020617 55%,#020617 100%);
       border-radius:18px;
@@ -405,7 +399,6 @@
       border-color:rgba(59,130,246,0.7);
     }
 
-    /* COURSE CARDS */
     .courses-list{
       display:grid;
       gap:10px;
@@ -536,7 +529,6 @@
       box-shadow:0 18px 34px rgba(250,204,21,0.65);
     }
 
-    /* EMPTY STATE */
     .empty-state{
       text-align:center;
       padding:28px 10px 18px;
@@ -556,7 +548,6 @@
       color:var(--muted);
     }
 
-    /* GPS STATUS */
     .gps-status{
       position:fixed;
       bottom:14px;
@@ -598,7 +589,6 @@
       color:var(--muted);
     }
 
-    /* RESPONSIVE */
     @media (max-width:768px){
       .header{
         padding:10px 12px;
@@ -623,7 +613,6 @@
 </head>
 <body>
 
-  <!-- LOGIN SCREEN -->
   <div id="loginScreen" class="login-screen">
     <div class="login-card">
       <div class="login-inner">
@@ -655,9 +644,7 @@
     </div>
   </div>
 
-  <!-- MAIN APP -->
   <div id="appContainer" class="app-container">
-    <!-- HEADER -->
     <div class="header">
       <div>
         <div class="logo">
@@ -678,7 +665,6 @@
       </div>
     </div>
 
-    <!-- STATS -->
     <div class="stats-grid">
       <div class="stat-card">
         <div class="stat-card-inner">
@@ -710,7 +696,6 @@
       </div>
     </div>
 
-    <!-- MES COURSES EN COURS -->
     <div class="section">
       <div class="section-header">
         <h2 class="section-title"><span>🎯</span> Mes courses en cours</h2>
@@ -724,7 +709,6 @@
       </div>
     </div>
 
-    <!-- COURSES DISPONIBLES -->
     <div class="section">
       <div class="section-header">
         <h2 class="section-title"><span>📍</span> Courses disponibles</h2>
@@ -739,7 +723,6 @@
     </div>
   </div>
 
-  <!-- GPS STATUS -->
   <div id="gpsStatus" class="gps-status" style="display:none;">
     <div class="gps-pulse"></div>
     <div>
@@ -748,14 +731,10 @@
     </div>
   </div>
 
-  <!-- FIREBASE -->
   <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
 
   <script>
-    // ==============================
-    // CONFIG FIREBASE (identique à ton fichier)
-    // ==============================
     const firebaseConfig = {
       apiKey: "AIzaSyDjHtYEu7yU-4zEBXY3jB_hf_fE63fW6g8",
       authDomain: "digiylyfe-app.firebaseapp.com",
@@ -769,13 +748,36 @@
     firebase.initializeApp(firebaseConfig);
     const db = firebase.database();
 
-    // ÉTAT CHAUFFEUR
     let driver = { id:null, name:null, phone:null, coords:null };
     let gpsWatchId = null;
 
-    // ==============================
-    // LOGIN CHAUFFEUR
-    // ==============================
+    function normalizePhone(phone) {
+      if (!phone) return "";
+      return phone.replace(/\D/g, "");
+    }
+
+    function sameDriver(ride, driver) {
+      if (!ride || !driver) return false;
+
+      if (ride.driver && ride.driver.id && driver.id && ride.driver.id === driver.id) {
+        return true;
+      }
+
+      const ridePhone = ride.driver && ride.driver.phone ? normalizePhone(ride.driver.phone) : "";
+      const currentPhone = normalizePhone(driver.phone);
+
+      if (ridePhone && currentPhone && ridePhone === currentPhone) {
+        return true;
+      }
+
+      const rideName = (ride.driver && ride.driver.name) || ride.driverName || ride.chauffeurName || "";
+      if (rideName && driver.name && rideName.trim().toLowerCase() === driver.name.trim().toLowerCase()) {
+        return true;
+      }
+
+      return false;
+    }
+
     function driverLogin(event){
       event.preventDefault();
 
@@ -787,7 +789,6 @@
         return;
       }
 
-      // Pour l’instant : acceptation simple (démo)
       driver.id = "driver_" + phone.replace(/\+|\s/g,"");
       driver.name = "Chauffeur " + phone.slice(-4);
       driver.phone = phone;
@@ -796,7 +797,6 @@
       document.getElementById("appContainer").style.display = "block";
       document.getElementById("driverName").textContent = driver.name;
 
-      // GPS + flux courses
       startGPSTracking();
       listenForRides();
       loadAvailableRides();
@@ -805,11 +805,8 @@
       console.log("✅ Connexion chauffeur :", driver);
     }
 
-    // ==============================
-    // COURSES ATTRIBUÉES À CE CHAUFFEUR
-    // ==============================
-    function loadMyActiveCourses(){
-      if(!db || !driver.id) return;
+    function loadMyActiveCourses() {
+      if (!db) return;
 
       const myRidesList = document.getElementById("coursesList");
       const myCoursesCountBadge = document.getElementById("myCoursesCount");
@@ -821,8 +818,10 @@
           const ride = childSnapshot.val();
           const rideId = childSnapshot.key;
 
-          if(ride.driver && ride.driver.id === driver.id){
-            if(ride.status !== "completed" && ride.status !== "cancelled"){
+          console.log("🔥 RIDE VUE PAR LE CLIENT CHAUFFEUR:", rideId, ride);
+
+          if (sameDriver(ride, driver)) {
+            if (ride.status !== "completed" && ride.status !== "cancelled") {
               myActiveRides.push({ id: rideId, ...ride });
             }
           }
@@ -868,7 +867,7 @@
 
             myRidesList.appendChild(card);
           });
-        }else{
+        } else {
           myRidesList.innerHTML = `
             <div class="empty-state">
               <div class="empty-state-icon">🚗</div>
@@ -881,7 +880,6 @@
       });
     }
 
-    // Mapping statuts
     function getStatusText(status){
       const map = {
         searching:"En recherche",
@@ -908,7 +906,6 @@
       return map[status] || "badge-warning";
     }
 
-    // Bouton d’action selon statut
     function getActionButton(ride){
       switch(ride.status){
         case "assigned":
@@ -924,9 +921,6 @@
       }
     }
 
-    // ==============================
-    // ACTIONS SUR LES COURSES
-    // ==============================
     function acceptRide(rideId){
       if(confirm("Accepter cette course ?")){
         db.ref("rides/" + rideId).update({
@@ -967,9 +961,6 @@
       }
     }
 
-    // ==============================
-    // COURSES DISPONIBLES (status: searching)
-    // ==============================
     function loadAvailableRides(){
       if(!db) return;
 
@@ -1034,7 +1025,6 @@
         });
     }
 
-    // Prendre une course (claim)
     function claimRide(rideId){
       if(!driver.id){
         alert("❌ Pas de chauffeur connecté");
@@ -1056,7 +1046,6 @@
       }
     }
 
-    // Notification nouvelle course
     function listenForRides(){
       if(!db) return;
 
@@ -1074,9 +1063,6 @@
         });
     }
 
-    // ==============================
-    // GPS
-    // ==============================
     function startGPSTracking(){
       if(!navigator.geolocation){
         console.warn("⚠️ GPS non supporté");
@@ -1124,9 +1110,6 @@
       );
     }
 
-    // ==============================
-    // STATS
-    // ==============================
     function updateStats(myRides){
       const today = new Date().toDateString();
 
@@ -1142,9 +1125,6 @@
       document.getElementById("statRevenue").textContent = revenue.toLocaleString() + " F";
     }
 
-    // ==============================
-    // LOGOUT
-    // ==============================
     function logout(){
       if(confirm("Voulez-vous vraiment vous déconnecter ?")){
         if(gpsWatchId){
