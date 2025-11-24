@@ -521,6 +521,10 @@
   let ridesRef = null;
   let currentRideRef = null;
 
+  // 🔵 GPS chauffeur
+  let driverPosition = null;
+  let driverGpsWatchId = null;
+
   // =========================
   // INIT
   // =========================
@@ -552,6 +556,7 @@
       elBtnToggle.classList.remove("off");
       elBtnToggle.innerHTML = "🟢 Disponible";
       startListeningRides();
+      startDriverGPS();
 
       db.ref("drivers/" + DRIVER_ID).update({
         status: "available",
@@ -563,6 +568,7 @@
       elBtnToggle.classList.add("off");
       elBtnToggle.innerHTML = "⚪ Hors-ligne";
       stopListeningRides();
+      stopDriverGPS();
 
       db.ref("drivers/" + DRIVER_ID).update({
         status: "offline",
@@ -572,7 +578,45 @@
   }
 
   // =========================
-  // ÉCOUTE DES COURSES EN ATTENTE
+  // GPS DU CHAUFFEUR
+  // =========================
+  function startDriverGPS() {
+    if (!navigator.geolocation) {
+      console.log("GPS non supporté sur ce device.");
+      return;
+    }
+
+    driverGpsWatchId = navigator.geolocation.watchPosition(
+      (pos) => {
+        driverPosition = {
+          lat: pos.coords.latitude,
+          lng: pos.coords.longitude,
+          accuracy: pos.coords.accuracy || null
+        };
+
+        db.ref("drivers/" + DRIVER_ID + "/position").set({
+          lat: driverPosition.lat,
+          lng: driverPosition.lng,
+          accuracy: driverPosition.accuracy,
+          updatedAt: firebase.database.ServerValue.TIMESTAMP
+        }).catch(() => {});
+      },
+      (err) => {
+        console.log("Erreur GPS chauffeur:", err);
+      },
+      { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 }
+    );
+  }
+
+  function stopDriverGPS() {
+    if (driverGpsWatchId !== null) {
+      navigator.geolocation.clearWatch(driverGpsWatchId);
+      driverGpsWatchId = null;
+    }
+  }
+
+  // =========================
+  // ÉCOUTe DES COURSES EN ATTENTE
   // =========================
   function startListeningRides() {
     if (ridesRef) return;
@@ -810,6 +854,7 @@
         <div class="ride-actions">
           <button class="btn small" onclick="marquerEnRoute()">🚗 En route</button>
           <button class="btn small" onclick="marquerClientABord()">👥 Client à bord</button>
+          <button class="btn small" onclick="ouvrirGPSClient()">🛰️ GPS vers le client</button>
           <button class="btn small" onclick="appelerClient()">📞 Appeler le client</button>
           <button class="btn primary" onclick="terminerEtEncaisser()">✅ Course terminée / encaissée</button>
           <button class="btn danger small" onclick="annulerCourse()">✕ Annuler</button>
@@ -852,6 +897,31 @@
     }
     const tel = state.currentRideData.clientPhone.replace(/\s+/g,'');
     window.location.href = `tel:${tel}`;
+  }
+
+  function ouvrirGPSClient() {
+    if (!state.currentRideData) return;
+    const r = state.currentRideData;
+
+    let url = "";
+
+    if (r.pickup && r.pickup.lat && r.pickup.lng) {
+      const dest = `${r.pickup.lat},${r.pickup.lng}`;
+      // Si on a la position du chauffeur, on la met en origine
+      if (driverPosition && driverPosition.lat && driverPosition.lng) {
+        const origin = `${driverPosition.lat},${driverPosition.lng}`;
+        url = `https://www.google.com/maps/dir/?api=1&origin=${encodeURIComponent(origin)}&destination=${encodeURIComponent(dest)}`;
+      } else {
+        url = `https://www.google.com/maps/dir/?api=1&destination=${encodeURIComponent(dest)}`;
+      }
+    } else if (r.pickupName) {
+      url = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(r.pickupName + ', Sénégal')}`;
+    } else {
+      alert("Pas d'adresse de départ disponible.");
+      return;
+    }
+
+    window.open(url, "_blank");
   }
 
   async function terminerEtEncaisser() {
